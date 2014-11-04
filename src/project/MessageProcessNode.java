@@ -1,5 +1,6 @@
 package project;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import peerbase.HandlerInterface;
@@ -24,8 +25,12 @@ public class MessageProcessNode extends Node {
 	public static final String REPLY = "REPL";
 	public static final String ERROR = "ERRO";
 
+	public List<String> buffer;
+
 	public MessageProcessNode(int maxPeers, PeerInfo info) {
 		super(maxPeers, info);
+
+		buffer = new ArrayList<String>();
 
 		this.addRouter(new Router(this));
 
@@ -62,6 +67,14 @@ public class MessageProcessNode extends Node {
 			return;
 
 		this.addPeer(pd);
+
+		resplist = this.connectAndSend(pd, FETCHBUF, "", true);
+		if (resplist.size() > 1) {
+			resplist.remove(0);
+			for (PeerMessage pm : resplist) {
+				buffer.add(pm.getMsgData());
+			}
+		}
 
 		// do recursive depth first search to add more peers
 		resplist = this.connectAndSend(pd, LISTPEER, "", true);
@@ -165,10 +178,11 @@ public class MessageProcessNode extends Node {
 
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
 			// store the msg into buffer
-			
+
 		}
 	}
-	
+
+	/* msg syntax: Fetch */
 	private class FetchHandler implements HandlerInterface {
 		@SuppressWarnings("unused")
 		private Node peer;
@@ -176,15 +190,18 @@ public class MessageProcessNode extends Node {
 		public FetchHandler(Node peer) {
 			this.peer = peer;
 		}
-		
+
 		@Override
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			// TODO Auto-generated method stub
-			
+			peerconn.sendData(new PeerMessage(REPLY, buffer.size() + ""));
+			for (String msgToSend : buffer) {
+				peerconn.sendData(new PeerMessage(REPLY, msgToSend));
+			}
 		}
-		
+
 	}
-	
+
+	/* msg syntax: STOP */
 	private class StopHandler implements HandlerInterface {
 		@SuppressWarnings("unused")
 		private Node peer;
@@ -192,13 +209,13 @@ public class MessageProcessNode extends Node {
 		public StopHandler(Node peer) {
 			this.peer = peer;
 		}
-		
+
 		@Override
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 	}
 
 	/* msg syntax: QUIT pid */
