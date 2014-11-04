@@ -17,6 +17,8 @@ public class MessageProcessNode extends Node {
 	public static final String LISTPEER = "LIST";
 	public static final String PEERNAME = "NAME";
 	public static final String RECVMSG = "RECV";
+	public static final String FETCHBUF = "FECH";
+	public static final String STOPPROC = "STOP";
 	public static final String PEERQUIT = "QUIT";
 
 	public static final String REPLY = "REPL";
@@ -31,6 +33,8 @@ public class MessageProcessNode extends Node {
 		this.addHandler(LISTPEER, new ListHandler(this));
 		this.addHandler(PEERNAME, new NameHandler(this));
 		this.addHandler(RECVMSG, new ReceiveHandler(this));
+		this.addHandler(FETCHBUF, new FetchHandler(this));
+		this.addHandler(STOPPROC, new StopHandler(this));
 		this.addHandler(PEERQUIT, new QuitHandler(this));
 	}
 
@@ -163,6 +167,38 @@ public class MessageProcessNode extends Node {
 			// store the msg into buffer
 			
 		}
+	}
+	
+	private class FetchHandler implements HandlerInterface {
+		@SuppressWarnings("unused")
+		private Node peer;
+
+		public FetchHandler(Node peer) {
+			this.peer = peer;
+		}
+		
+		@Override
+		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
+	private class StopHandler implements HandlerInterface {
+		@SuppressWarnings("unused")
+		private Node peer;
+
+		public StopHandler(Node peer) {
+			this.peer = peer;
+		}
+		
+		@Override
+		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 
 	/* msg syntax: QUIT pid */
