@@ -168,22 +168,6 @@ public class MessageProcessNode extends Node {
 		}
 	}
 
-	/* msg syntax: RECV msg */
-	private class ReceiveHandler implements HandlerInterface {
-		@SuppressWarnings("unused")
-		private Node peer;
-
-		public ReceiveHandler(Node peer) {
-			this.peer = peer;
-		}
-
-		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			// store the msg into buffer
-
-		}
-	}
-
-
 	private class FetchHandler implements HandlerInterface {
 		@SuppressWarnings("unused")
 		private Node peer;
