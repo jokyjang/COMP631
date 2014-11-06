@@ -32,9 +32,9 @@ public class Sender extends Thread{
 
 	public void run() {
 		while(true) {
-			System.out.println("haha " + sendFlag);
+			System.out.print("");
 			if(!this.sendFlag) continue;
-			System.err.println("fuck you!");
+			//System.err.println("fuck you!");
 			long waitTime = new Random().nextInt((int)(upper-lower)) + lower;
 			try {
 				Thread.sleep(waitTime);

@@ -182,9 +182,8 @@ public class DemoApp extends JFrame
 
 	private void updateMessageList() {
 		messageModel.removeAllElements();
-		for (String hash : peer.receiver.getMessageHashes()) {
-			String pid = peer.receiver.getMessagePid(hash);
-			messageModel.addElement(hash + ":" + pid);
+		for (int i = 0; i < peer.receiver.getMessageSize(); ++i) {
+			messageModel.addElement(peer.receiver.getMessageAt(i));
 		}
 	}
 

@@ -18,8 +18,8 @@ public class BobDemo {
 			port = Integer.parseInt(args[0]);
 		}
 
-		LoggerUtil.setHandlersLevel(Level.FINE);
-		new DemoApp("localhost", 9001, 5, new PeerInfo("localhost", port));
+		//LoggerUtil.setHandlersLevel(Level.FINE);
+		new DemoApp("152.23.68.198", 9001, 5, new PeerInfo("152.23.68.198", port));
 
 		/*	FileShareApp goo2 = new FileShareApp("localhost:8000", 
 		 5, new PeerData("localhost", 8001)); */
