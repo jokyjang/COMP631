@@ -39,7 +39,6 @@ public class Receiver implements HandlerInterface {
 
 	public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
 		// store the msg into buffer
-		System.out.println("Message received!");
 		msg.getMsgType();
 		String[] datas = msg.getMsgData().split(" ");
 		byte[] data = DatatypeConverter.parseBase64Binary(datas[1]);

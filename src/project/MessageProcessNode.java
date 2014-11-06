@@ -233,7 +233,6 @@ public class MessageProcessNode extends Node {
 	 */
 	public void broadCast(byte[] message) {
 		String strMsg = DatatypeConverter.printBase64Binary(message);
-		System.out.println("in broadcast");
 		for (String pid : this.getPeerKeys()) {
 			PeerInfo info = this.getPeer(pid);
 			this.connectAndSend(info, RECVMSG, 
