@@ -59,8 +59,12 @@ public class MessageProcessNode extends Node {
 		LoggerUtil.getLogger().fine("contacted " + peerid);
 		pd.setId(peerid);
 
-		String resp = this.connectAndSend(pd, INSERTPEER,
-				String.format("%s %s %d", this.getId(), this.getHost(), this.getPort()), true).get(0).getMsgType();
+		String resp = this
+				.connectAndSend(
+						pd,
+						INSERTPEER,
+						String.format("%s %s %d", this.getId(), this.getHost(),
+								this.getPort()), true).get(0).getMsgType();
 		if (!resp.equals(REPLY) || this.getPeerKeys().contains(peerid))
 			return;
 
@@ -157,6 +161,7 @@ public class MessageProcessNode extends Node {
 		}
 	}
 
+	/* msg syntax: FECH */
 	private class FetchHandler implements HandlerInterface {
 		@SuppressWarnings("unused")
 		private Node peer;
@@ -233,14 +238,14 @@ public class MessageProcessNode extends Node {
 	 */
 	public void broadCast(byte[] message) {
 		String strMsg = DatatypeConverter.printBase64Binary(message);
-		for (String pid : this.getPeerKeys()) {
-			PeerInfo info = this.getPeer(pid);
-			this.connectAndSend(info, RECVMSG, 
+		for (String pid : getPeerKeys()) {
+			PeerInfo info = getPeer(pid);
+			connectAndSend(info, RECVMSG,
 					String.format("%s %s", this.getId(), strMsg), false);
 		}
 		PeerInfo info = new PeerInfo(this.getHost(), this.getPort());
-		this.connectAndSend(info, RECVMSG,
-				String.format("%s %s", this.getId(), strMsg), false);
+		connectAndSend(info, RECVMSG, String.format("%s %s", getId(), strMsg),
+				false);
 	}
 
 }

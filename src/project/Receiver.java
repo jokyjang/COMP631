@@ -3,19 +3,17 @@ package project;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.bind.DatatypeConverter;
 
 import peerbase.HandlerInterface;
-import peerbase.Node;
 import peerbase.PeerConnection;
 import peerbase.PeerMessage;
 
 public class Receiver implements HandlerInterface {
 	/* msg syntax: RECV msg */
+	@SuppressWarnings("unused")
 	private MessageProcessNode peer;
 	private List<String> messages;
 
@@ -23,15 +21,13 @@ public class Receiver implements HandlerInterface {
 		this.peer = peer;
 		messages = new ArrayList<String>();
 	}
-	
+
 	public String generateHash(byte[] data) {
 		String hash = null;
 		try {
-			MessageDigest mDigest = MessageDigest
-					.getInstance("SHA1");
+			MessageDigest mDigest = MessageDigest.getInstance("SHA1");
 			hash = DatatypeConverter.printBase64Binary(mDigest.digest(data));
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return hash;
@@ -45,11 +41,11 @@ public class Receiver implements HandlerInterface {
 		String hash = this.generateHash(data);
 		messages.add(hash + ":" + datas[0]);
 	}
-	
+
 	public int getMessageSize() {
 		return messages.size();
 	}
-	
+
 	public String getMessageAt(int i) {
 		return messages.get(i);
 	}
