@@ -210,11 +210,10 @@ public class DemoApp extends JFrame
 	class LowerBoundListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			String lower = lowerBoundTextField.getText().trim();
-			long lowerBound = 0;
+			long lowerBound = Sender.DEFAULT_LOWER_BOUND;
 			try {
 				lowerBound = Long.parseLong(lower);
 			} catch (NumberFormatException e1) {
-				lowerBound = 0;
 			}
 			peer.sender.setLower(lowerBound);
 		}
@@ -222,6 +221,13 @@ public class DemoApp extends JFrame
 
 	class MessageSizeListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
+			String sizeStr = messageSizeTextField.getText().trim();
+			long size = Sender.DEFAULT_MESSAGE_LENGTH;
+			try {
+				size = Long.parseLong(sizeStr);
+			} catch (NumberFormatException e1) {
+			}
+			peer.sender.setLower(size);
 		}
 	}
 
@@ -244,7 +250,13 @@ public class DemoApp extends JFrame
 
 	class UpperBoundListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			
+			String upper = upperBoundTextField.getText().trim();
+			long upperBound = Sender.DEFAULT_UPPER_BOUND;
+			try {
+				upperBound = Long.parseLong(upper);
+			} catch (NumberFormatException e1) {
+			}
+			peer.sender.setUpper(upperBound);
 		}
 	}
 }

@@ -3,9 +3,9 @@ package project;
 import java.util.Random;
 
 public class Sender extends Thread{
-	private static final int DEFAULT_MESSAGE_LENGTH = 80;
-	private static final int DEFAULT_LOWER_BOUND = 1000;
-	private static final int DEFAULT_UPPER_BOUND = 2000;
+	public static final int DEFAULT_MESSAGE_LENGTH = 80;
+	public static final int DEFAULT_LOWER_BOUND = 1000;
+	public static final int DEFAULT_UPPER_BOUND = 2000;
 	private boolean sendFlag = false;
 	private int messageLength;
 	private long lower;
