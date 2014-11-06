@@ -25,7 +25,7 @@ public class MessageProcessNode extends Node {
 
 	public static final String REPLY = "REPL";
 	public static final String ERROR = "ERRO";
-	
+
 	public Sender sender;
 	public Receiver receiver;
 
@@ -61,21 +61,22 @@ public class MessageProcessNode extends Node {
 		LoggerUtil.getLogger().fine("contacted " + peerid);
 		pd.setId(peerid);
 
-		String resp = this.connectAndSend(pd, INSERTPEER,
-				String.format("%s %s %d", this.getId(), this.getHost(),
-				this.getPort()), true).get(0).getMsgType();
+		String resp = this
+				.connectAndSend(
+						pd,
+						INSERTPEER,
+						String.format("%s %s %d", this.getId(), this.getHost(),
+								this.getPort()), true).get(0).getMsgType();
 		if (!resp.equals(REPLY) || this.getPeerKeys().contains(peerid))
 			return;
 
 		this.addPeer(pd);
 
-		resplist = this.connectAndSend(pd, FETCHBUF, "", true);
-		if (resplist.size() > 1) {
-			resplist.remove(0);
-			for (PeerMessage pm : resplist) {
-				buffer.add(pm.getMsgData());
-			}
-		}
+		/*
+		 * resplist = this.connectAndSend(pd, FETCHBUF, "", true); if
+		 * (resplist.size() > 1) { resplist.remove(0); for (PeerMessage pm :
+		 * resplist) { buffer.add(pm.getMsgData()); } }
+		 */
 
 		// do recursive depth first search to add more peers
 		resplist = this.connectAndSend(pd, LISTPEER, "", true);
@@ -175,6 +176,7 @@ public class MessageProcessNode extends Node {
 		public FetchHandler(Node peer) {
 			this.peer = peer;
 		}
+
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
 			peerconn.sendData(new PeerMessage(REPLY, buffer.size() + ""));
 			for (String msgToSend : buffer) {
@@ -221,10 +223,6 @@ public class MessageProcessNode extends Node {
 		}
 	}
 
-	private class MessageProcess extends Thread {
-
-	}
-
 	private class Router implements RouterInterface {
 		private Node peer;
 
@@ -242,15 +240,15 @@ public class MessageProcessNode extends Node {
 
 	/**
 	 * This method will broadcast message to all the other peers it connects.
+	 * 
 	 * @param message
 	 */
 	public void broadCast(byte[] message) {
 		String strMsg = DatatypeConverter.printBase64Binary(message);
-		for(String pid : this.getPeerKeys()) {
+		for (String pid : this.getPeerKeys()) {
 			PeerInfo info = this.getPeer(pid);
 			this.connectAndSend(info, RECVMSG, strMsg, false);
 		}
 	}
-	
-	
+
 }
