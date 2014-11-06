@@ -29,8 +29,6 @@ public class MessageProcessNode extends Node {
 	public Sender sender;
 	public Receiver receiver;
 
-	public List<String> buffer;
-
 	public MessageProcessNode(int maxPeers, PeerInfo info) {
 		super(maxPeers, info);
 		sender = new Sender(this);
@@ -178,10 +176,10 @@ public class MessageProcessNode extends Node {
 		}
 
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			peerconn.sendData(new PeerMessage(REPLY, buffer.size() + ""));
-			for (String msgToSend : buffer) {
-				peerconn.sendData(new PeerMessage(REPLY, msgToSend));
-			}
+			// peerconn.sendData(new PeerMessage(REPLY, buffer.size() + ""));
+			// for (String msgToSend : buffer) {
+			// peerconn.sendData(new PeerMessage(REPLY, msgToSend));
+			// }
 		}
 
 	}
