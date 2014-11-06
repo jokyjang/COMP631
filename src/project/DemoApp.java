@@ -182,15 +182,13 @@ public class DemoApp extends JFrame
 
 	private void updateMessageList() {
 		messageModel.removeAllElements();
-		/*
-		for (String filename : peer.getFileNames()) {
-			String pid = peer.getFileOwner(filename);
+		for (String hash : peer.receiver.getMessageHashes()) {
+			String pid = peer.receiver.getMessagePid(hash);
 			if (pid.equals(peer.getId()))
-				messageModel.addElement(filename + ":(local)");
+				messageModel.addElement(hash + ":(local)");
 			else
-				messageModel.addElement(filename + ":" + pid);
+				messageModel.addElement(hash + ":" + pid);
 		}
-		*/
 	}
 
 
@@ -243,7 +241,7 @@ public class DemoApp extends JFrame
 
 	class RefreshListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			//updateFileList();
+			updateMessageList();
 			updatePeerList();
 		}
 	}

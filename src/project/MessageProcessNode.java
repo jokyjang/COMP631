@@ -1,6 +1,9 @@
 package project;
 
+import java.util.Hashtable;
 import java.util.List;
+
+import javax.xml.bind.DatatypeConverter;
 
 import peerbase.HandlerInterface;
 import peerbase.LoggerUtil;
@@ -25,16 +28,18 @@ public class MessageProcessNode extends Node {
 	public static final String ERROR = "ERRO";
 	
 	public Sender sender;
+	public Receiver receiver;
 
 	public MessageProcessNode(int maxPeers, PeerInfo info) {
 		super(maxPeers, info);
 		sender = new Sender(this);
+		receiver = new Receiver(this);
 		this.addRouter(new Router(this));
 
 		this.addHandler(INSERTPEER, new JoinHandler(this));
 		this.addHandler(LISTPEER, new ListHandler(this));
 		this.addHandler(PEERNAME, new NameHandler(this));
-		this.addHandler(RECVMSG, new ReceiveHandler(this));
+		this.addHandler(RECVMSG, receiver);
 		this.addHandler(FETCHBUF, new FetchHandler(this));
 		this.addHandler(STOPPROC, new StopHandler(this));
 		this.addHandler(PEERQUIT, new QuitHandler(this));
@@ -152,21 +157,6 @@ public class MessageProcessNode extends Node {
 			peerconn.sendData(new PeerMessage(REPLY, peer.getId()));
 		}
 	}
-
-	/* msg syntax: RECV msg */
-	private class ReceiveHandler implements HandlerInterface {
-		@SuppressWarnings("unused")
-		private Node peer;
-
-		public ReceiveHandler(Node peer) {
-			this.peer = peer;
-		}
-
-		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			// store the msg into buffer
-			
-		}
-	}
 	
 	private class FetchHandler implements HandlerInterface {
 		@SuppressWarnings("unused")
@@ -243,6 +233,12 @@ public class MessageProcessNode extends Node {
 	 * @param message
 	 */
 	public void broadCast(byte[] message) {
-		
+		String strMsg = DatatypeConverter.printBase64Binary(message);
+		for(String pid : this.getPeerKeys()) {
+			PeerInfo info = this.getPeer(pid);
+			this.connectAndSend(info, RECVMSG, strMsg, false);
+		}
 	}
+	
+	
 }
