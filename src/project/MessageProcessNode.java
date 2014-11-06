@@ -1,6 +1,5 @@
 package project;
 
-import java.util.Hashtable;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
@@ -30,10 +29,13 @@ public class MessageProcessNode extends Node {
 	public Sender sender;
 	public Receiver receiver;
 
+	public List<String> buffer;
+
 	public MessageProcessNode(int maxPeers, PeerInfo info) {
 		super(maxPeers, info);
 		sender = new Sender(this);
 		receiver = new Receiver(this);
+
 		this.addRouter(new Router(this));
 
 		this.addHandler(INSERTPEER, new JoinHandler(this));
@@ -66,6 +68,14 @@ public class MessageProcessNode extends Node {
 			return;
 
 		this.addPeer(pd);
+
+		resplist = this.connectAndSend(pd, FETCHBUF, "", true);
+		if (resplist.size() > 1) {
+			resplist.remove(0);
+			for (PeerMessage pm : resplist) {
+				buffer.add(pm.getMsgData());
+			}
+		}
 
 		// do recursive depth first search to add more peers
 		resplist = this.connectAndSend(pd, LISTPEER, "", true);
@@ -157,7 +167,23 @@ public class MessageProcessNode extends Node {
 			peerconn.sendData(new PeerMessage(REPLY, peer.getId()));
 		}
 	}
-	
+
+	/* msg syntax: RECV msg */
+	private class ReceiveHandler implements HandlerInterface {
+		@SuppressWarnings("unused")
+		private Node peer;
+
+		public ReceiveHandler(Node peer) {
+			this.peer = peer;
+		}
+
+		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+			// store the msg into buffer
+
+		}
+	}
+
+
 	private class FetchHandler implements HandlerInterface {
 		@SuppressWarnings("unused")
 		private Node peer;
@@ -165,14 +191,16 @@ public class MessageProcessNode extends Node {
 		public FetchHandler(Node peer) {
 			this.peer = peer;
 		}
-		
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			// TODO Auto-generated method stub
-			
+			peerconn.sendData(new PeerMessage(REPLY, buffer.size() + ""));
+			for (String msgToSend : buffer) {
+				peerconn.sendData(new PeerMessage(REPLY, msgToSend));
+			}
 		}
-		
+
 	}
-	
+
+	/* msg syntax: STOP */
 	private class StopHandler implements HandlerInterface {
 		@SuppressWarnings("unused")
 		private Node peer;
@@ -180,12 +208,12 @@ public class MessageProcessNode extends Node {
 		public StopHandler(Node peer) {
 			this.peer = peer;
 		}
-		
+
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 	}
 
 	/* msg syntax: QUIT pid */
