@@ -10,7 +10,7 @@ public class AliceDemo {
 
 	public static void main(String[] args) throws IOException
 	{
-		int port = 9000;
+		int port = 9001;
 		if (args.length != 1) {
 			System.out.println("Usage: java ... peerbase.sample.FileShareApp <host-port>");
 		}
@@ -18,8 +18,8 @@ public class AliceDemo {
 			port = Integer.parseInt(args[0]);
 		}
 
-		LoggerUtil.setHandlersLevel(Level.FINE);
-		new DemoApp("localhost", 9001, 5, new PeerInfo("localhost", port));
+		//LoggerUtil.setHandlersLevel(Level.FINE);
+		new DemoApp("152.23.68.198", 9002, 5, new PeerInfo("152.23.68.198", port));
 
 		/*	FileShareApp goo2 = new FileShareApp("localhost:8000", 
 		 5, new PeerData("localhost", 8001)); */

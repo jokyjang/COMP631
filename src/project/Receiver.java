@@ -22,7 +22,7 @@ public class Receiver implements HandlerInterface {
 		messages = new Hashtable<String, String>();
 	}
 	
-	private String generateHash(byte[] data) {
+	public String generateHash(byte[] data) {
 		String hash = null;
 		try {
 			MessageDigest mDigest = MessageDigest
@@ -37,11 +37,12 @@ public class Receiver implements HandlerInterface {
 
 	public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
 		// store the msg into buffer
+		System.out.println("Message received!");
 		msg.getMsgType();
-		byte[] data = DatatypeConverter.parseBase64Binary(msg.getMsgData());
+		String[] datas = msg.getMsgData().split(" ");
+		byte[] data = DatatypeConverter.parseBase64Binary(datas[1]);
 		String hash = this.generateHash(data);
-		String pid = peerconn.getPeerInfo().getId();
-		messages.put(hash, pid);
+		messages.put(hash, datas[0]);
 	}
 	
 	public Set<String> getMessageHashes() {

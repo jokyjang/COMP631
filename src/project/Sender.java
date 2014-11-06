@@ -32,17 +32,19 @@ public class Sender extends Thread{
 
 	public void run() {
 		while(true) {
+			System.out.println("haha " + sendFlag);
 			if(!this.sendFlag) continue;
+			System.err.println("fuck you!");
 			long waitTime = new Random().nextInt((int)(upper-lower)) + lower;
 			try {
 				Thread.sleep(waitTime);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} finally {
-				byte[] message = this.generateRandomMessage();
-				peer.broadCast(message);
 			}
+			System.err.println("Message generating!");
+			byte[] message = this.generateRandomMessage();
+			peer.broadCast(message);
 		}
 	}
 	

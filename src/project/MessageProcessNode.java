@@ -33,7 +33,7 @@ public class MessageProcessNode extends Node {
 		super(maxPeers, info);
 		sender = new Sender(this);
 		receiver = new Receiver(this);
-
+		sender.start();
 		this.addRouter(new Router(this));
 
 		this.addHandler(INSERTPEER, new JoinHandler(this));
@@ -59,22 +59,12 @@ public class MessageProcessNode extends Node {
 		LoggerUtil.getLogger().fine("contacted " + peerid);
 		pd.setId(peerid);
 
-		String resp = this
-				.connectAndSend(
-						pd,
-						INSERTPEER,
-						String.format("%s %s %d", this.getId(), this.getHost(),
-								this.getPort()), true).get(0).getMsgType();
+		String resp = this.connectAndSend(pd, INSERTPEER,
+				String.format("%s %s %d", this.getId(), this.getHost(), this.getPort()), true).get(0).getMsgType();
 		if (!resp.equals(REPLY) || this.getPeerKeys().contains(peerid))
 			return;
 
 		this.addPeer(pd);
-
-		/*
-		 * resplist = this.connectAndSend(pd, FETCHBUF, "", true); if
-		 * (resplist.size() > 1) { resplist.remove(0); for (PeerMessage pm :
-		 * resplist) { buffer.add(pm.getMsgData()); } }
-		 */
 
 		// do recursive depth first search to add more peers
 		resplist = this.connectAndSend(pd, LISTPEER, "", true);
@@ -243,10 +233,15 @@ public class MessageProcessNode extends Node {
 	 */
 	public void broadCast(byte[] message) {
 		String strMsg = DatatypeConverter.printBase64Binary(message);
+		System.out.println("in broadcast");
 		for (String pid : this.getPeerKeys()) {
 			PeerInfo info = this.getPeer(pid);
-			this.connectAndSend(info, RECVMSG, strMsg, false);
+			this.connectAndSend(info, RECVMSG, 
+					String.format("%s %s", this.getId(), strMsg), false);
 		}
+		PeerInfo info = new PeerInfo(this.getHost(), this.getPort());
+		this.connectAndSend(info, RECVMSG,
+				String.format("%s %s", this.getId(), strMsg), false);
 	}
 
 }

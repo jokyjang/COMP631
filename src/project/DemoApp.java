@@ -184,10 +184,7 @@ public class DemoApp extends JFrame
 		messageModel.removeAllElements();
 		for (String hash : peer.receiver.getMessageHashes()) {
 			String pid = peer.receiver.getMessagePid(hash);
-			if (pid.equals(peer.getId()))
-				messageModel.addElement(hash + ":(local)");
-			else
-				messageModel.addElement(hash + ":" + pid);
+			messageModel.addElement(hash + ":" + pid);
 		}
 	}
 
