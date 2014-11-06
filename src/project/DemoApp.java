@@ -64,7 +64,7 @@ public class DemoApp extends JFrame
 
 	private MessageProcessNode peer;
 
-	private DemoApp(String initialhost, int initialport, int maxpeers, PeerInfo mypd)
+	public DemoApp(String initialhost, int initialport, int maxpeers, PeerInfo mypd)
 	{
 		peer = new MessageProcessNode(maxpeers, mypd);
 		peer.buildPeers(initialhost, initialport, 2);
@@ -251,23 +251,4 @@ public class DemoApp extends JFrame
 			
 		}
 	}
-
-
-	public static void main(String[] args) throws IOException
-	{
-		int port = 9000;
-		if (args.length != 1) {
-			System.out.println("Usage: java ... peerbase.sample.FileShareApp <host-port>");
-		}
-		else {
-			port = Integer.parseInt(args[0]);
-		}
-
-		LoggerUtil.setHandlersLevel(Level.FINE);
-		new DemoApp("localhost", 9001, 5, new PeerInfo("localhost", port));
-
-		/*	FileShareApp goo2 = new FileShareApp("localhost:8000", 
-		 5, new PeerData("localhost", 8001)); */
-	}
-
 }
