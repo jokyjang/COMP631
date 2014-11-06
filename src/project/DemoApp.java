@@ -23,31 +23,18 @@
 	Feb 07 2007	Nadeem Abdul Hamid	Add to project (from source by P. Valencia)
  */
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.FileOutputStream;
-import java.io.IOException;
+
+package project;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
 import java.util.List;
 import java.util.logging.Level;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 
-import peerbase.LoggerUtil;
-import peerbase.PeerInfo;
-import peerbase.PeerMessage;
-import peerbase.sample.FileShareApp;
-import peerbase.sample.FileShareNode;
+import peerbase.*;
 import peerbase.util.SimplePingStabilizer;
 
 
@@ -58,47 +45,46 @@ import peerbase.util.SimplePingStabilizer;
  * @author Nadeem Abdul Hamid
  */
 @SuppressWarnings("serial")
-public class FirstClass extends JFrame
+public class DemoApp extends JFrame
 {
 
-	private static final int FRAME_WIDTH = 565, FRAME_HEIGHT = 265;
+	private static final int FRAME_WIDTH = 665, FRAME_HEIGHT = 265;
 
-	private JPanel filesPanel, peersPanel;
+	private JPanel messagePanel, peersPanel;
 	private JPanel lowerFilesPanel, lowerPeersPanel;
-	private DefaultListModel filesModel, peersModel;
-	private JList filesList, peersList;
+	private DefaultListModel messageModel, peersModel;
+	private JList messageList, peersList;
 
 
-	private JButton fetchFilesButton, addFilesButton, searchFilesButton;
-	private JButton removePeersButton, refreshPeersButton, rebuildPeersButton;
+	private JButton startButton, lowerBoundButton, messageSizeButton;
+	private JButton removePeersButton, refreshPeersButton, upperBoundButton;
 
-	private JTextField addTextField, searchTextField;
-	private JTextField rebuildTextField;
+	private JTextField lowerBoundTextField, messageSizeTextField;
+	private JTextField upperBoundTextField;
 
-	private FileShareNode peer;
+	private MessageProcessNode peer;
 
-
-	private FirstClass(String initialhost, int initialport, int maxpeers, PeerInfo mypd)
+	private DemoApp(String initialhost, int initialport, int maxpeers, PeerInfo mypd)
 	{
-		peer = new FileShareNode(maxpeers, mypd);
+		peer = new MessageProcessNode(maxpeers, mypd);
 		peer.buildPeers(initialhost, initialport, 2);
 
-		fetchFilesButton = new JButton("Fetch");
-		fetchFilesButton.addActionListener(new FetchListener());
-		addFilesButton = new JButton("Add");
-		addFilesButton.addActionListener(new AddListener());
-		searchFilesButton = new JButton("Search");
-		searchFilesButton.addActionListener(new SearchListener());
+		startButton = new JButton("Start");
+		startButton.addActionListener(new StartListener());
+		lowerBoundButton = new JButton("Lower Bound");
+		lowerBoundButton.addActionListener(new LowerBoundListener());
+		messageSizeButton = new JButton("Message Size");
+		messageSizeButton.addActionListener(new MessageSizeListener());
 		removePeersButton = new JButton("Remove");
 		removePeersButton.addActionListener(new RemoveListener());
 		refreshPeersButton = new JButton("Refresh");
 		refreshPeersButton.addActionListener(new RefreshListener());
-		rebuildPeersButton = new JButton("Rebuild");
-		rebuildPeersButton.addActionListener(new RebuildListener());
+		upperBoundButton = new JButton("Upper Bound");
+		upperBoundButton.addActionListener(new UpperBoundListener());
 
-		addTextField = new JTextField(15);
-		searchTextField = new JTextField(15);
-		rebuildTextField = new JTextField(15);
+		lowerBoundTextField = new JTextField(15);
+		messageSizeTextField = new JTextField(15);
+		upperBoundTextField = new JTextField(15);
 
 		setupFrame(this);
 
@@ -129,11 +115,10 @@ public class FirstClass extends JFrame
 		   a BorderLayout on the whole frame
 		   and GridLayouts on the upper/lower panels*/
 
-		frame = new JFrame("FileShareNode ID: <" + peer.getId() + ">");
+		frame = new JFrame("Demo App ID: <" + peer.getId() + ">");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		frame.setLayout(new BorderLayout());
-
 
 		JPanel upperPanel = new JPanel();
 		JPanel lowerPanel = new JPanel();
@@ -145,28 +130,28 @@ public class FirstClass extends JFrame
 
 		frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
 
-		filesModel = new DefaultListModel();
-		filesList = new JList(filesModel);
+		messageModel = new DefaultListModel();
+		messageList = new JList(messageModel);
 		peersModel = new DefaultListModel();
 		peersList = new JList(peersModel);
-		filesPanel = initPanel(new JLabel("Available Files"), filesList);
+		messagePanel = initPanel(new JLabel("Message List"), messageList);
 		peersPanel = initPanel(new JLabel("Peer List"), peersList);
 		lowerFilesPanel = new JPanel();
 		lowerPeersPanel = new JPanel();
 
-		filesPanel.add(fetchFilesButton);
+		messagePanel.add(startButton);
 		peersPanel.add(removePeersButton);
 		peersPanel.add(refreshPeersButton);
 
-		lowerFilesPanel.add(addTextField);
-		lowerFilesPanel.add(addFilesButton);
-		lowerFilesPanel.add(searchTextField);
-		lowerFilesPanel.add(searchFilesButton);	
+		lowerFilesPanel.add(lowerBoundTextField);
+		lowerFilesPanel.add(lowerBoundButton);
+		lowerFilesPanel.add(messageSizeTextField);
+		lowerFilesPanel.add(messageSizeButton);	
 
-		lowerPeersPanel.add(rebuildTextField);
-		lowerPeersPanel.add(rebuildPeersButton);
+		lowerPeersPanel.add(upperBoundTextField);
+		lowerPeersPanel.add(upperBoundButton);
 
-		upperPanel.add(filesPanel);
+		upperPanel.add(messagePanel);
 		upperPanel.add(peersPanel);
 		lowerPanel.add(lowerFilesPanel);
 		lowerPanel.add(lowerPeersPanel);
@@ -195,16 +180,17 @@ public class FirstClass extends JFrame
 		return panel;
 	}
 
-	
-	private void updateFileList() {
-		filesModel.removeAllElements();
+	private void updateMessageList() {
+		messageModel.removeAllElements();
+		/*
 		for (String filename : peer.getFileNames()) {
 			String pid = peer.getFileOwner(filename);
 			if (pid.equals(peer.getId()))
-				filesModel.addElement(filename + ":(local)");
+				messageModel.addElement(filename + ":(local)");
 			else
-				filesModel.addElement(filename + ":" + pid);
+				messageModel.addElement(filename + ":" + pid);
 		}
+		*/
 	}
 
 
@@ -215,59 +201,33 @@ public class FirstClass extends JFrame
 		}
 	}
 
-	
-	class FetchListener implements ActionListener {
+	class StartListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			if(filesList.getSelectedValue() != null)
-			{
-				String selected = filesList.getSelectedValue().toString();
-				String filename = selected.substring(0, selected.indexOf(':'));
-				String pid = peer.getFileOwner(filename);
-				String[] ownerData = pid.split(":");
-				String host = ownerData[0];
-				int port = Integer.parseInt(ownerData[1]);
-				LoggerUtil.getLogger().fine("Fetching " + filename + " from " + host + ":" + port);
-				PeerInfo pd = new PeerInfo(host, port);
-				List<PeerMessage> resplist = peer.connectAndSend(pd, FileShareNode.FILEGET, filename, true);
-				LoggerUtil.getLogger().fine("FETCH RESPONSE TYPE: " + resplist.get(0).getMsgType());
-				if (resplist.size() > 0 && resplist.get(0).getMsgType().equals(FileShareNode.REPLY)) {
-					try {
-						FileOutputStream outfile = new FileOutputStream(filename);
-						outfile.write(resplist.get(0).getMsgDataBytes());
-						outfile.close();
-						peer.addLocalFile(filename);
-					} catch (IOException ex) {
-						LoggerUtil.getLogger().warning("Fetch error: " + ex);
-					}
-				}
-
+			if(startButton.getText().equalsIgnoreCase("Start")) {
+				peer.sender.startSending();
+				startButton.setText("Stop");
+			} else if(startButton.getText().equalsIgnoreCase("Stop")) {
+				peer.sender.stopSending();
+				startButton.setText("Start");
 			}
 		}
 	}
 
-	class AddListener implements ActionListener {
+	class LowerBoundListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			String filename = addTextField.getText().trim();
-			if (!filename.equals("")) {
-				peer.addLocalFile(filename);
+			String lower = lowerBoundTextField.getText().trim();
+			long lowerBound = 0;
+			try {
+				lowerBound = Long.parseLong(lower);
+			} catch (NumberFormatException e1) {
+				lowerBound = 0;
 			}
-			addTextField.requestFocusInWindow();
-			addTextField.setText("");
-			updateFileList();
+			peer.sender.setLower(lowerBound);
 		}
 	}
 
-	class SearchListener implements ActionListener {
+	class MessageSizeListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			String key = searchTextField.getText().trim();
-			for (String pid : peer.getPeerKeys()) {
-				peer.sendToPeer(pid, FileShareNode.QUERY,
-						peer.getId() + " " + key + " 4",
-						true);
-			}
-
-			searchTextField.requestFocusInWindow();
-			searchTextField.setText("");
 		}
 	}
 
@@ -275,7 +235,7 @@ public class FirstClass extends JFrame
 		public void actionPerformed(ActionEvent e) {
 			if (peersList.getSelectedValue() != null) {
 				String pid = peersList.getSelectedValue().toString();
-				peer.sendToPeer(pid, FileShareNode.PEERQUIT, peer.getId(), true);
+				peer.sendToPeer(pid, MessageProcessNode.PEERQUIT, peer.getId(), true);
 				peer.removePeer(pid);
 			}
 		}
@@ -283,27 +243,14 @@ public class FirstClass extends JFrame
 
 	class RefreshListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			updateFileList();
+			//updateFileList();
 			updatePeerList();
 		}
 	}
 
-	class RebuildListener implements ActionListener {
+	class UpperBoundListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			String peerid = rebuildTextField.getText().trim();
-			if (!peer.maxPeersReached() && !peerid.equals("")) {
-				try {
-					String[] data = peerid.split(":");
-					String host = data[0];
-					int port = Integer.parseInt(data[1]);
-					peer.buildPeers(host, port, 3);
-				}
-				catch (Exception ex) {
-					LoggerUtil.getLogger().warning("FileShareApp: rebuild: " + ex);
-				}
-			}
-			rebuildTextField.requestFocusInWindow();
-			rebuildTextField.setText("");
+			
 		}
 	}
 
@@ -319,7 +266,7 @@ public class FirstClass extends JFrame
 		}
 
 		LoggerUtil.setHandlersLevel(Level.FINE);
-		new FirstClass("localhost", 9001, 5, new PeerInfo("localhost", port));
+		new DemoApp("localhost", 9001, 5, new PeerInfo("localhost", port));
 
 		/*	FileShareApp goo2 = new FileShareApp("localhost:8000", 
 		 5, new PeerData("localhost", 8001)); */

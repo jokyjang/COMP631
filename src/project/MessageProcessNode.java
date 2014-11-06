@@ -23,10 +23,12 @@ public class MessageProcessNode extends Node {
 
 	public static final String REPLY = "REPL";
 	public static final String ERROR = "ERRO";
+	
+	public Sender sender;
 
 	public MessageProcessNode(int maxPeers, PeerInfo info) {
 		super(maxPeers, info);
-
+		sender = new Sender(this);
 		this.addRouter(new Router(this));
 
 		this.addHandler(INSERTPEER, new JoinHandler(this));
@@ -52,12 +54,9 @@ public class MessageProcessNode extends Node {
 		LoggerUtil.getLogger().fine("contacted " + peerid);
 		pd.setId(peerid);
 
-		String resp = this
-				.connectAndSend(
-						pd,
-						INSERTPEER,
-						String.format("%s %s %d", this.getId(), this.getHost(),
-								this.getPort()), true).get(0).getMsgType();
+		String resp = this.connectAndSend(pd, INSERTPEER,
+				String.format("%s %s %d", this.getId(), this.getHost(),
+				this.getPort()), true).get(0).getMsgType();
 		if (!resp.equals(REPLY) || this.getPeerKeys().contains(peerid))
 			return;
 
@@ -177,7 +176,6 @@ public class MessageProcessNode extends Node {
 			this.peer = peer;
 		}
 		
-		@Override
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
 			// TODO Auto-generated method stub
 			
@@ -193,7 +191,6 @@ public class MessageProcessNode extends Node {
 			this.peer = peer;
 		}
 		
-		@Override
 		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
 			// TODO Auto-generated method stub
 			
@@ -239,5 +236,13 @@ public class MessageProcessNode extends Node {
 			else
 				return null;
 		}
+	}
+
+	/**
+	 * This method will broadcast message to all the other peers it connects.
+	 * @param message
+	 */
+	public void broadCast(byte[] message) {
+		
 	}
 }
