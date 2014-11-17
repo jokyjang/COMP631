@@ -9,7 +9,7 @@ import javax.xml.bind.DatatypeConverter;
 public class Receiver {
 
   static final int DEFAULT_START_PROCESSING_SIZE = 20;
-  
+
   @SuppressWarnings("unused")
   private MessageProcessNode peer;
   MessageBlock buffer;
@@ -21,13 +21,19 @@ public class Receiver {
   public Receiver(MessageProcessNode peer) {
     this(peer, DEFAULT_START_PROCESSING_SIZE);
   }
-  
+
   public Receiver(MessageProcessNode peer, int startSize) {
     this.peer = peer;
     buffer = new MessageBlock();
     this.startProcessingSize = startSize;
   }
 
+  /**
+   * Using the given byte array to generate the hash.
+   * 
+   * @param data
+   * @return
+   */
   public String generateHash(byte[] data) {
     String hash = null;
     try {
@@ -49,7 +55,7 @@ public class Receiver {
     curr.setPrevHash(prevHash);
     buffer = new MessageBlock();
     // TODO: implement the process message part
-    
+
   }
 
   /**
