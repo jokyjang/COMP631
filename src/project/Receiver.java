@@ -2,51 +2,87 @@ package project;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
-import peerbase.HandlerInterface;
-import peerbase.PeerConnection;
-import peerbase.PeerMessage;
+public class Receiver {
 
-public class Receiver implements HandlerInterface {
-	/* msg syntax: RECV msg */
-	@SuppressWarnings("unused")
-	private MessageProcessNode peer;
-	private List<String> messages;
+  static final int DEFAULT_START_PROCESSING_SIZE = 20;
+  
+  @SuppressWarnings("unused")
+  private MessageProcessNode peer;
+  MessageBlock buffer;
+  MessageBlock curr;
+  List<MessageBlock> blockChain;
+  boolean init = true;
+  int startProcessingSize;
 
-	public Receiver(MessageProcessNode peer) {
-		this.peer = peer;
-		messages = new ArrayList<String>();
-	}
+  public Receiver(MessageProcessNode peer) {
+    this(peer, DEFAULT_START_PROCESSING_SIZE);
+  }
+  
+  public Receiver(MessageProcessNode peer, int startSize) {
+    this.peer = peer;
+    buffer = new MessageBlock();
+    this.startProcessingSize = startSize;
+  }
 
-	public String generateHash(byte[] data) {
-		String hash = null;
-		try {
-			MessageDigest mDigest = MessageDigest.getInstance("SHA1");
-			hash = DatatypeConverter.printBase64Binary(mDigest.digest(data));
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		return hash;
-	}
+  public String generateHash(byte[] data) {
+    String hash = null;
+    try {
+      MessageDigest mDigest = MessageDigest.getInstance("SHA1");
+      hash = DatatypeConverter.printBase64Binary(mDigest.digest(data));
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+    }
+    return hash;
+  }
 
-	public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-		// store the msg into buffer
-		msg.getMsgType();
-		String[] datas = msg.getMsgData().split(" ");
-		byte[] data = DatatypeConverter.parseBase64Binary(datas[1]);
-		String hash = this.generateHash(data);
-		messages.add(hash + ":" + datas[0]);
-	}
+  /**
+   * Let the current message block to be the buffer and start process it.
+   * 
+   * @param prevHash
+   */
+  public void processMessage(String prevHash) {
+    curr = buffer;
+    curr.setPrevHash(prevHash);
+    buffer = new MessageBlock();
+    // TODO: implement the process message part
+    
+  }
 
-	public int getMessageSize() {
-		return messages.size();
-	}
+  /**
+   * Add the message to the buffer, if the size of the message block is greater than the start
+   * processing size for the first time, then it start to process the message block.
+   * 
+   * @param msg
+   */
+  public void addMessage(byte[] msg) {
+    buffer.addMessage(msg);
+    if (init && buffer.getMessages().size() > startProcessingSize) {
+      processMessage(null);
+      curr = buffer;
+      buffer = new MessageBlock();
+      init = false;
+    }
+  }
 
-	public String getMessageAt(int i) {
-		return messages.get(i);
-	}
+  /**
+   * Set the pow of current processing block
+   * 
+   * @param pow
+   */
+  public void setPow(Long pow) {
+    curr.setPow(pow);
+    processMessage(generateHash(curr.serialize()));
+  }
+
+  public int getMessageSize() {
+    return blockChain.size();
+  }
+
+  public MessageBlock getMessageBlockAt(int i) {
+    return blockChain.get(i);
+  }
 }

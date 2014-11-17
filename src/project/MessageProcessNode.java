@@ -14,238 +14,232 @@ import peerbase.RouterInterface;
 
 public class MessageProcessNode extends Node {
 
-	/* MESSAGE TYPES */
-	public static final String INSERTPEER = "JOIN";
-	public static final String LISTPEER = "LIST";
-	public static final String PEERNAME = "NAME";
-	public static final String RECVMSG = "RECV";
-	public static final String FETCHBUF = "FECH";
-	public static final String STOPPROC = "STOP";
-	public static final String PEERQUIT = "QUIT";
+  public Sender sender;
+  public Receiver receiver;
 
-	public static final String REPLY = "REPL";
-	public static final String ERROR = "ERRO";
+  public MessageProcessNode(int maxPeers, PeerInfo info) {
+    super(maxPeers, info);
+    sender = new Sender(this);
+    receiver = new Receiver(this);
+    sender.start();
+    this.addRouter(new Router(this));
 
-	public Sender sender;
-	public Receiver receiver;
+    this.addHandler(MessageType.INSERTPEER, new JoinHandler(this));
+    this.addHandler(MessageType.LISTPEER, new ListHandler(this));
+    this.addHandler(MessageType.PEERNAME, new NameHandler(this));
+    this.addHandler(MessageType.RECVMSG, new ReceiveHandler(this));
+    // Update: use receive handler instand of receiver
+    // this.addHandler(MessageType.RECVMSG, receiver);
+    this.addHandler(MessageType.FETCHBUF, new FetchHandler(this));
+    this.addHandler(MessageType.STOPPROC, new StopHandler(this));
+    this.addHandler(MessageType.PEERQUIT, new QuitHandler(this));
+  }
 
-	public MessageProcessNode(int maxPeers, PeerInfo info) {
-		super(maxPeers, info);
-		sender = new Sender(this);
-		receiver = new Receiver(this);
-		sender.start();
-		this.addRouter(new Router(this));
+  public void buildPeers(String host, int port, int hops) {
+    LoggerUtil.getLogger().fine("build peers");
 
-		this.addHandler(INSERTPEER, new JoinHandler(this));
-		this.addHandler(LISTPEER, new ListHandler(this));
-		this.addHandler(PEERNAME, new NameHandler(this));
-		this.addHandler(RECVMSG, receiver);
-		this.addHandler(FETCHBUF, new FetchHandler(this));
-		this.addHandler(STOPPROC, new StopHandler(this));
-		this.addHandler(PEERQUIT, new QuitHandler(this));
-	}
+    if (this.maxPeersReached() || hops <= 0)
+      return;
+    PeerInfo pd = new PeerInfo(host, port);
+    List<PeerMessage> resplist = this.connectAndSend(pd, MessageType.PEERNAME, "", true);
+    if (resplist == null || resplist.size() == 0)
+      return;
+    String peerid = resplist.get(0).getMsgData();
+    LoggerUtil.getLogger().fine("contacted " + peerid);
+    pd.setId(peerid);
 
-	public void buildPeers(String host, int port, int hops) {
-		LoggerUtil.getLogger().fine("build peers");
+    String resp =
+        this.connectAndSend(pd, MessageType.INSERTPEER,
+            String.format("%s %s %d", this.getId(), this.getHost(), this.getPort()), true).get(0)
+            .getMsgType();
+    if (!resp.equals(MessageType.REPLY) || this.getPeerKeys().contains(peerid))
+      return;
 
-		if (this.maxPeersReached() || hops <= 0)
-			return;
-		PeerInfo pd = new PeerInfo(host, port);
-		List<PeerMessage> resplist = this
-				.connectAndSend(pd, PEERNAME, "", true);
-		if (resplist == null || resplist.size() == 0)
-			return;
-		String peerid = resplist.get(0).getMsgData();
-		LoggerUtil.getLogger().fine("contacted " + peerid);
-		pd.setId(peerid);
+    this.addPeer(pd);
 
-		String resp = this
-				.connectAndSend(
-						pd,
-						INSERTPEER,
-						String.format("%s %s %d", this.getId(), this.getHost(),
-								this.getPort()), true).get(0).getMsgType();
-		if (!resp.equals(REPLY) || this.getPeerKeys().contains(peerid))
-			return;
+    // do recursive depth first search to add more peers
+    resplist = this.connectAndSend(pd, MessageType.LISTPEER, "", true);
 
-		this.addPeer(pd);
+    if (resplist.size() > 1) {
+      resplist.remove(0);
+      for (PeerMessage pm : resplist) {
+        String[] data = pm.getMsgData().split("\\s");
+        String nextpid = data[0];
+        String nexthost = data[1];
+        int nextport = Integer.parseInt(data[2]);
+        if (!nextpid.equals(this.getId()))
+          buildPeers(nexthost, nextport, hops - 1);
+      }
+    }
+  }
 
-		// do recursive depth first search to add more peers
-		resplist = this.connectAndSend(pd, LISTPEER, "", true);
+  /* msg syntax: JOIN pid host port */
+  private class JoinHandler implements HandlerInterface {
+    private Node peer;
 
-		if (resplist.size() > 1) {
-			resplist.remove(0);
-			for (PeerMessage pm : resplist) {
-				String[] data = pm.getMsgData().split("\\s");
-				String nextpid = data[0];
-				String nexthost = data[1];
-				int nextport = Integer.parseInt(data[2]);
-				if (!nextpid.equals(this.getId()))
-					buildPeers(nexthost, nextport, hops - 1);
-			}
-		}
-	}
+    public JoinHandler(Node peer) {
+      this.peer = peer;
+    }
 
-	/* msg syntax: JOIN pid host port */
-	private class JoinHandler implements HandlerInterface {
-		private Node peer;
+    public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+      if (peer.maxPeersReached()) {
+        LoggerUtil.getLogger().fine("maxpeers reached " + peer.getMaxPeers());
+        peerconn.sendData(new PeerMessage(MessageType.ERROR, "Join: " + "too many peers"));
+        return;
+      }
 
-		public JoinHandler(Node peer) {
-			this.peer = peer;
-		}
+      // check for correct number of arguments
+      String[] data = msg.getMsgData().split("\\s");
+      if (data.length != 3) {
+        peerconn.sendData(new PeerMessage(MessageType.ERROR, "Join: " + "incorrect arguments"));
+        return;
+      }
 
-		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			if (peer.maxPeersReached()) {
-				LoggerUtil.getLogger().fine(
-						"maxpeers reached " + peer.getMaxPeers());
-				peerconn.sendData(new PeerMessage(ERROR, "Join: "
-						+ "too many peers"));
-				return;
-			}
+      // parse arguments into PeerInfo structure
+      PeerInfo info = new PeerInfo(data[0], data[1], Integer.parseInt(data[2]));
 
-			// check for correct number of arguments
-			String[] data = msg.getMsgData().split("\\s");
-			if (data.length != 3) {
-				peerconn.sendData(new PeerMessage(ERROR, "Join: "
-						+ "incorrect arguments"));
-				return;
-			}
+      if (peer.getPeer(info.getId()) != null)
+        peerconn.sendData(new PeerMessage(MessageType.ERROR, "Join: " + "peer already inserted"));
+      else if (info.getId().equals(peer.getId()))
+        peerconn.sendData(new PeerMessage(MessageType.ERROR, "Join: " + "attempt to insert self"));
+      else {
+        peer.addPeer(info);
+        peerconn.sendData(new PeerMessage(MessageType.REPLY, "Join: " + "peer added: "
+            + info.getId()));
+      }
+    }
+  }
 
-			// parse arguments into PeerInfo structure
-			PeerInfo info = new PeerInfo(data[0], data[1],
-					Integer.parseInt(data[2]));
+  /* msg syntax: LIST */
+  private class ListHandler implements HandlerInterface {
+    private Node peer;
 
-			if (peer.getPeer(info.getId()) != null)
-				peerconn.sendData(new PeerMessage(ERROR, "Join: "
-						+ "peer already inserted"));
-			else if (info.getId().equals(peer.getId()))
-				peerconn.sendData(new PeerMessage(ERROR, "Join: "
-						+ "attempt to insert self"));
-			else {
-				peer.addPeer(info);
-				peerconn.sendData(new PeerMessage(REPLY, "Join: "
-						+ "peer added: " + info.getId()));
-			}
-		}
-	}
+    public ListHandler(Node peer) {
+      this.peer = peer;
+    }
 
-	/* msg syntax: LIST */
-	private class ListHandler implements HandlerInterface {
-		private Node peer;
+    public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+      peerconn.sendData(new PeerMessage(MessageType.REPLY, String.format("%d",
+          peer.getNumberOfPeers())));
+      for (String pid : peer.getPeerKeys()) {
+        peerconn.sendData(new PeerMessage(MessageType.REPLY, String.format("%s %s %d", pid, peer
+            .getPeer(pid).getHost(), peer.getPeer(pid).getPort())));
+      }
+    }
+  }
 
-		public ListHandler(Node peer) {
-			this.peer = peer;
-		}
+  /* msg syntax: NAME */
+  private class NameHandler implements HandlerInterface {
+    private Node peer;
 
-		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			peerconn.sendData(new PeerMessage(REPLY, String.format("%d",
-					peer.getNumberOfPeers())));
-			for (String pid : peer.getPeerKeys()) {
-				peerconn.sendData(new PeerMessage(REPLY, String.format(
-						"%s %s %d", pid, peer.getPeer(pid).getHost(), peer
-								.getPeer(pid).getPort())));
-			}
-		}
-	}
+    public NameHandler(Node peer) {
+      this.peer = peer;
+    }
 
-	/* msg syntax: NAME */
-	private class NameHandler implements HandlerInterface {
-		private Node peer;
+    public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+      peerconn.sendData(new PeerMessage(MessageType.REPLY, peer.getId()));
+    }
+  }
 
-		public NameHandler(Node peer) {
-			this.peer = peer;
-		}
+  /* msg syntax: RECV msg */
+  private class ReceiveHandler implements HandlerInterface {
+    @SuppressWarnings("unused")
+    private Node peer;
 
-		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			peerconn.sendData(new PeerMessage(REPLY, peer.getId()));
-		}
-	}
+    public ReceiveHandler(Node peer) {
+      this.peer = peer;
+    }
 
-	/* msg syntax: FECH */
-	private class FetchHandler implements HandlerInterface {
-		@SuppressWarnings("unused")
-		private Node peer;
+    @Override
+    public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+      String[] datas = msg.getMsgData().split(" ");
+      byte[] data = DatatypeConverter.parseBase64Binary(datas[1]);
+      receiver.addMessage(data);
+    }
 
-		public FetchHandler(Node peer) {
-			this.peer = peer;
-		}
+  }
 
-		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			// peerconn.sendData(new PeerMessage(REPLY, buffer.size() + ""));
-			// for (String msgToSend : buffer) {
-			// peerconn.sendData(new PeerMessage(REPLY, msgToSend));
-			// }
-		}
+  /* msg syntax: FECH */
+  private class FetchHandler implements HandlerInterface {
+    @SuppressWarnings("unused")
+    private Node peer;
 
-	}
+    public FetchHandler(Node peer) {
+      this.peer = peer;
+    }
 
-	/* msg syntax: STOP */
-	private class StopHandler implements HandlerInterface {
-		@SuppressWarnings("unused")
-		private Node peer;
+    public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+      // TODO Auto-generated method stub
+      // peerconn.sendData(new PeerMessage(REPLY, buffer.size() + ""));
+      // for (String msgToSend : buffer) {
+      // peerconn.sendData(new PeerMessage(REPLY, msgToSend));
+      // }
+    }
 
-		public StopHandler(Node peer) {
-			this.peer = peer;
-		}
+  }
 
-		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			// TODO Auto-generated method stub
+  /* msg syntax: STOP */
+  private class StopHandler implements HandlerInterface {
+    @SuppressWarnings("unused")
+    private Node peer;
 
-		}
+    public StopHandler(Node peer) {
+      this.peer = peer;
+    }
 
-	}
+    public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+      receiver.setPow(Long.parseLong(msg.getMsgData()));
+    }
 
-	/* msg syntax: QUIT pid */
-	private class QuitHandler implements HandlerInterface {
-		private Node peer;
+  }
 
-		public QuitHandler(Node peer) {
-			this.peer = peer;
-		}
+  /* msg syntax: QUIT pid */
+  private class QuitHandler implements HandlerInterface {
+    private Node peer;
 
-		public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-			String pid = msg.getMsgData().trim();
-			if (peer.getPeer(pid) == null) {
-				peerconn.sendData(new PeerMessage(ERROR,
-						"Quit: peer not found: " + pid));
-			} else {
-				peer.removePeer(pid);
-				peerconn.sendData(new PeerMessage(REPLY, "Quit: peer removed: "
-						+ pid));
-			}
-		}
-	}
+    public QuitHandler(Node peer) {
+      this.peer = peer;
+    }
 
-	private class Router implements RouterInterface {
-		private Node peer;
+    public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+      String pid = msg.getMsgData().trim();
+      if (peer.getPeer(pid) == null) {
+        peerconn.sendData(new PeerMessage(MessageType.ERROR, "Quit: peer not found: " + pid));
+      } else {
+        peer.removePeer(pid);
+        peerconn.sendData(new PeerMessage(MessageType.REPLY, "Quit: peer removed: " + pid));
+      }
+    }
+  }
 
-		public Router(Node peer) {
-			this.peer = peer;
-		}
+  private class Router implements RouterInterface {
+    private Node peer;
 
-		public PeerInfo route(String peerid) {
-			if (peer.getPeerKeys().contains(peerid))
-				return peer.getPeer(peerid);
-			else
-				return null;
-		}
-	}
+    public Router(Node peer) {
+      this.peer = peer;
+    }
 
-	/**
-	 * This method will broadcast message to all the other peers it connects.
-	 * 
-	 * @param message
-	 */
-	public void broadCast(byte[] message) {
-		String strMsg = DatatypeConverter.printBase64Binary(message);
-		for (String pid : getPeerKeys()) {
-			PeerInfo info = getPeer(pid);
-			connectAndSend(info, RECVMSG,
-					String.format("%s %s", this.getId(), strMsg), false);
-		}
-		PeerInfo info = new PeerInfo(this.getHost(), this.getPort());
-		connectAndSend(info, RECVMSG, String.format("%s %s", getId(), strMsg),
-				false);
-	}
+    public PeerInfo route(String peerid) {
+      if (peer.getPeerKeys().contains(peerid))
+        return peer.getPeer(peerid);
+      else
+        return null;
+    }
+  }
+
+  /**
+   * This method will broadcast message to all the other peers it connects.
+   * 
+   * @param message
+   */
+  public void broadCast(byte[] message) {
+    String strMsg = DatatypeConverter.printBase64Binary(message);
+    for (String pid : getPeerKeys()) {
+      PeerInfo info = getPeer(pid);
+      connectAndSend(info, MessageType.RECVMSG, String.format("%s %s", this.getId(), strMsg), false);
+    }
+    PeerInfo info = new PeerInfo(this.getHost(), this.getPort());
+    connectAndSend(info, MessageType.RECVMSG, String.format("%s %s", getId(), strMsg), false);
+  }
 
 }
