@@ -150,7 +150,6 @@ public class MessageProcessNode extends Node {
       this.peer = peer;
     }
 
-    @Override
     public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
       String[] datas = msg.getMsgData().split(" ");
       byte[] data = DatatypeConverter.parseBase64Binary(datas[1]);
