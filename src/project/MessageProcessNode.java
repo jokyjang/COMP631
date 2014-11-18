@@ -42,7 +42,7 @@ public class MessageProcessNode extends Node {
     if (this.maxPeersReached() || hops <= 0)
       return;
     PeerInfo pd = new PeerInfo(host, port);
-    List<PeerMessage> resplist = this.connectAndSend(pd, MessageType.PEERNAME, "", true);
+    List<PeerMessage> resplist = connectAndSend(pd, MessageType.PEERNAME, "", true);
     if (resplist == null || resplist.size() == 0)
       return;
     String peerid = resplist.get(0).getMsgData();
@@ -50,9 +50,8 @@ public class MessageProcessNode extends Node {
     pd.setId(peerid);
 
     String resp =
-        this.connectAndSend(pd, MessageType.INSERTPEER,
-            String.format("%s %s %d", this.getId(), this.getHost(), this.getPort()), true).get(0)
-            .getMsgType();
+        connectAndSend(pd, MessageType.INSERTPEER,
+            String.format("%s %s %d", getId(), getHost(), getPort()), true).get(0).getMsgType();
     if (!resp.equals(MessageType.REPLY) || this.getPeerKeys().contains(peerid))
       return;
 
