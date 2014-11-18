@@ -1,5 +1,6 @@
 package project;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
@@ -56,6 +57,15 @@ public class MessageProcessNode extends Node {
       return;
 
     this.addPeer(pd);
+
+    resplist = this.connectAndSend(pd, MessageType.FETCHBUF, "", true);
+
+    if (resplist.size() > 1) {
+      resplist.remove(0);
+      for (PeerMessage pm : resplist) {
+        receiver.addMessage(pm.getMsgData());
+      }
+    }
 
     // do recursive depth first search to add more peers
     resplist = this.connectAndSend(pd, MessageType.LISTPEER, "", true);
@@ -152,8 +162,7 @@ public class MessageProcessNode extends Node {
 
     public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
       String[] datas = msg.getMsgData().split(" ");
-      byte[] data = DatatypeConverter.parseBase64Binary(datas[1]);
-      receiver.addMessage(data);
+      receiver.addMessage(datas[1]);
     }
 
   }
@@ -168,11 +177,11 @@ public class MessageProcessNode extends Node {
     }
 
     public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-      // TODO Auto-generated method stub
-      // peerconn.sendData(new PeerMessage(REPLY, buffer.size() + ""));
-      // for (String msgToSend : buffer) {
-      // peerconn.sendData(new PeerMessage(REPLY, msgToSend));
-      // }
+      List<byte[]> bufferMsg = receiver.getBuffer().getMessages();
+      peerconn.sendData(new PeerMessage(MessageType.REPLY, bufferMsg.size() + ""));
+      for (byte[] msgToSend : bufferMsg) {
+        peerconn.sendData(new PeerMessage(MessageType.REPLY, Arrays.toString(msgToSend)));
+      }
     }
 
   }

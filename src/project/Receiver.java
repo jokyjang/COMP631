@@ -64,8 +64,9 @@ public class Receiver {
    * 
    * @param msg
    */
-  public void addMessage(byte[] msg) {
-    buffer.addMessage(msg);
+  public void addMessage(String msg) {
+    byte[] msgByte = DatatypeConverter.parseBase64Binary(msg);
+    buffer.addMessage(msgByte);
     if (init && buffer.getMessages().size() > startProcessingSize) {
       processMessage(null);
       curr = buffer;
@@ -90,5 +91,9 @@ public class Receiver {
 
   public MessageBlock getMessageBlockAt(int i) {
     return blockChain.get(i);
+  }
+  
+  public MessageBlock getBuffer() {
+    return buffer;
   }
 }
