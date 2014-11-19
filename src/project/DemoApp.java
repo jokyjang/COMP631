@@ -155,8 +155,8 @@ public class DemoApp extends JFrame {
 
   private void updateMessageList() {
     messageModel.removeAllElements();
-    for (int i = 0; i < peer.receiver.getMessageSize(); ++i) {
-      messageModel.addElement(peer.receiver.getMessageBlockAt(i).getPow());
+    for (int i = 0; i < peer.receiver.getBufferSize(); ++i) {
+      messageModel.addElement(peer.receiver.getMessageAt(i));
     }
   }
 

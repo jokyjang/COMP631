@@ -2,6 +2,8 @@ package project;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
@@ -26,6 +28,7 @@ public class Receiver {
     this.peer = peer;
     buffer = new MessageBlock();
     this.startProcessingSize = startSize;
+    blockChain = new ArrayList<MessageBlock>();
   }
 
   /**
@@ -84,8 +87,16 @@ public class Receiver {
     curr.setPow(pow);
     processMessage(generateHash(curr.serialize()));
   }
+  
+  public int getBufferSize() {
+    return buffer.getMessages().size();
+  }
+  
+  public String getMessageAt(int i) {
+    return Arrays.toString(buffer.getMessages().get(i));
+  }
 
-  public int getMessageSize() {
+  public int getBlockChainSize() {
     return blockChain.size();
   }
 
