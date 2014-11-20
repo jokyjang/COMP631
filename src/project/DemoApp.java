@@ -156,7 +156,8 @@ public class DemoApp extends JFrame {
   private void updateMessageList() {
     messageModel.removeAllElements();
     for (int i = 0; i < peer.receiver.getBlockChainSize(); ++i) {
-      messageModel.addElement(peer.receiver.getMessageBlockAt(i).getPrevHash());
+      String hash = Receiver.generateHash(peer.receiver.getMessageBlockAt(i).serialize());
+      messageModel.addElement(hash);
     }
   }
 

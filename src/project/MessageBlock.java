@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Random;
 
 public class MessageBlock {
-  private String prevHash;
+  //private String prevHash;
   private List<byte[]> messages;
   private Long pow;
 
   public MessageBlock() {
-    prevHash = null;
+    //prevHash = null;
     messages = new ArrayList<byte[]>();
     pow = 0L;
   }
@@ -33,18 +33,20 @@ public class MessageBlock {
     return pow;
   }
 
+  /*
   public void setPrevHash(String prevHash) {
     this.prevHash = prevHash;
   }
+ 
 
   public String getPrevHash() {
     return prevHash;
   }
+  */
 
   // TODO : Implements this method
   public byte[] serialize() {
-    int length = Integer.SIZE / Byte.SIZE + prevHash.length();
-    length += Integer.SIZE / Byte.SIZE;
+    int length = Integer.SIZE / Byte.SIZE;
     if (!messages.isEmpty()) {
       for (byte[] message : messages) {
         length += Integer.SIZE / Byte.SIZE;
@@ -54,8 +56,6 @@ public class MessageBlock {
     length += Long.SIZE / Byte.SIZE;
     ByteBuffer buffer = ByteBuffer.allocate(length);
 
-    buffer.putInt(prevHash.length());
-    buffer.put(prevHash.getBytes());
     buffer.putInt(messages.size());
     for (byte[] message : messages) {
       buffer.putInt(message.length);
@@ -72,10 +72,6 @@ public class MessageBlock {
     ByteBuffer buffer = ByteBuffer.wrap(data);
     MessageBlock mb = new MessageBlock();
     int length = buffer.getInt();
-    byte[] prevHashByte = new byte[length];
-    buffer.get(prevHashByte);
-    mb.setPrevHash(new String(prevHashByte));
-    length = buffer.getInt();
     for (int i = 0; i < length; ++i) {
       int l = buffer.getInt();
       byte[] message = new byte[l];
@@ -93,7 +89,7 @@ public class MessageBlock {
    */
   public static MessageBlock generateRandom() {
     MessageBlock mb = new MessageBlock();
-    mb.setPrevHash("ImPrevHash");
+    //mb.setPrevHash("ImPrevHash");
     int length = new Random().nextInt(20);
     for (int i = 0; i < length; ++i) {
       byte[] message = new byte[10];
@@ -106,8 +102,6 @@ public class MessageBlock {
 
   public boolean equals(MessageBlock mb) {
     if (mb == null)
-      return false;
-    if (!this.prevHash.equals(mb.getPrevHash()))
       return false;
     if (this.messages.size() != mb.getMessages().size())
       return false;
@@ -126,7 +120,6 @@ public class MessageBlock {
     System.out.println(mb.equals(newMB));
 
     mb = new MessageBlock();
-    mb.setPrevHash("shabe");
     for (int i = 0; i < 5; ++i) {
       mb.addMessage("nishishabe".getBytes());
     }
@@ -134,8 +127,6 @@ public class MessageBlock {
     bytes = mb.serialize();
 
     MessageBlock mb2 = MessageBlock.deserialize(bytes);
-    System.out.println(mb.getPrevHash());
-    System.out.println(mb2.getPrevHash());
     System.out.println(mb.equals(mb2));
   }
 }

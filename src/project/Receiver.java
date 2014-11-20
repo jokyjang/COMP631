@@ -75,7 +75,7 @@ public class Receiver {
 
     public void run() {
       while (true) {
-        while(!isMining() && !finished());
+        while(!isMining() && !finished()) {System.out.print("");}
         if(finished()) break;
         Long pow = mine();
         if (pow != null) {
@@ -122,10 +122,10 @@ public class Receiver {
    * @param prevHash
    */
   public void processMessage() {
-    MessageBlock lastMB = getLastMessageBlock();
-    String prevHash = (lastMB == null) ? "" : generateHash(lastMB.serialize());
-    curr.setPrevHash(prevHash);
-    System.out.println("process message!");
+    //MessageBlock lastMB = getLastMessageBlock();
+    //String prevHash = (lastMB == null) ? "" : generateHash(lastMB.serialize());
+    //curr.setPrevHash(prevHash);
+    //System.out.println("process message!");
     miner.startMining();
   }
 
@@ -135,7 +135,7 @@ public class Receiver {
    * @param data
    * @return
    */
-  private String generateHash(byte[] data) {
+  public static String generateHash(byte[] data) {
     String hash = null;
     try {
       MessageDigest mDigest = MessageDigest.getInstance("SHA1");
@@ -205,7 +205,7 @@ public class Receiver {
 
   private void addMessageBlock(MessageBlock mb) {
     blockChain.push(mb);
-    System.out.println("a new mb added in message block chain: " + mb.getPrevHash());
+    System.out.println("New Message Block: " + this.generateHash(mb.serialize()));
   }
 
   public MessageBlock getMessageBlockAt(int i) {
