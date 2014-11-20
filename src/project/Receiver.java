@@ -117,7 +117,7 @@ public class Receiver {
     buffer = new MessageBlock();
     this.startProcessingSize = startSize;
     try {
-      writer = new PrintWriter("/Users/Shared" + peer.getId());
+      writer = new PrintWriter("/Users/Shared/" + peer.getId());
     } catch (FileNotFoundException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
