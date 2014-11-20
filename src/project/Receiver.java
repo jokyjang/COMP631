@@ -2,9 +2,7 @@ package project;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 
@@ -13,82 +11,78 @@ import javax.xml.bind.DatatypeConverter;
 import peerbase.PeerInfo;
 
 public class Receiver {
-	
-  private class Miner extends Thread{
-	  private boolean stop = true;
-	  private int constraint = 24;
-	  
-		/**
-		 * This method will check if the first few bits of `hash' are 0. As for
-		 * the number of bits, it depends on how difficult the mining function
-		 * is.
-		 * 
-		 * @param hash
-		 * @return
-		 */
-		private boolean isValid(String hashValue) {
-			int i = 0;
-			byte[] hash = DatatypeConverter.parseBase64Binary(hashValue);
-			while (i < hash.length && constraint >= Byte.SIZE) {
-				if (hash[i] != 0)
-					return false;
-				constraint -= Byte.SIZE;
-				++i;
-			}
-			if (i == hash.length)
-				return true;
-			return (hash[i] & 0xFF) >> (Byte.SIZE - constraint) == 0;
-		}
-	  
-		private Long mine() {
-			System.out.println("Miner starts mining!");
-			stop = false;
-			Random random = new Random();
-			String hash = null;
-			do {
-				curr.setPow(random.nextLong());
-				hash = generateHash(curr.serialize());
-			} while (!stop && !isValid(hash));
-			
-			System.out.println("miner stops mining! stop = " + stop);
-			if (stop)
-				return null;
-			stop = true;
-			return curr.getPow();
-		}
-		
-		public void stopMining() {
-			stop = true;
-		}
 
-		public void run() {
-			while (true) {
-				try {
-					synchronized (this) {
-						this.wait();
-					}
+  private class Miner extends Thread {
+    private boolean stop = true;
+    private int constraint = 24;
 
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					// e.printStackTrace();
-					break;
-				}
-				Long pow = mine();
-				if (pow != null) {
-					notifyAllToStopMining(pow);
-				}
-			}
-		}
+    /**
+     * This method will check if the first few bits of `hash' are 0. As for the number of bits, it
+     * depends on how difficult the mining function is.
+     * 
+     * @param hash
+     * @return
+     */
+    private boolean isValid(String hashValue) {
+      int i = 0;
+      byte[] hash = DatatypeConverter.parseBase64Binary(hashValue);
+      while (i < hash.length && constraint >= Byte.SIZE) {
+        if (hash[i] != 0)
+          return false;
+        constraint -= Byte.SIZE;
+        ++i;
+      }
+      if (i == hash.length)
+        return true;
+      return (hash[i] & 0xFF) >> (Byte.SIZE - constraint) == 0;
+    }
 
-		public boolean isMining() {
-			// TODO Auto-generated method stub
-			return !stop;
-		}
+    private Long mine() {
+      System.out.println("Miner starts mining!");
+      stop = false;
+      Random random = new Random();
+      String hash = null;
+      do {
+        curr.setPow(random.nextLong());
+        hash = generateHash(curr.serialize());
+      } while (!stop && !isValid(hash));
+
+      System.out.println("miner stops mining! stop = " + stop);
+      if (stop)
+        return null;
+      stop = true;
+      return curr.getPow();
+    }
+
+    public void stopMining() {
+      stop = true;
+    }
+
+    public void run() {
+      while (true) {
+        try {
+          synchronized (this) {
+            this.wait();
+          }
+
+        } catch (InterruptedException e) {
+          // e.printStackTrace();
+          break;
+        }
+        Long pow = mine();
+        if (pow != null) {
+          notifyAllToStopMining(pow);
+        }
+      }
+    }
+
+    public boolean isMining() {
+      return !stop;
+    }
   }
 
   static final int DEFAULT_START_PROCESSING_SIZE = 20;
 
-  @SuppressWarnings("unused")
   private MessageProcessNode peer;
   private MessageBlock buffer;
   private MessageBlock curr;
@@ -109,9 +103,9 @@ public class Receiver {
     miner = new Miner();
     miner.start();
   }
-  
+
   public MessageBlock getLastMessageBlock() {
-	  return blockChain.isEmpty() ? null : blockChain.peek();
+    return blockChain.isEmpty() ? null : blockChain.peek();
   }
 
   /**
@@ -120,15 +114,14 @@ public class Receiver {
    * @param prevHash
    */
   public void processMessage() {
-	MessageBlock lastMB = getLastMessageBlock();
-	String prevHash = (lastMB == null) ? "" : generateHash(lastMB.serialize());
+    MessageBlock lastMB = getLastMessageBlock();
+    String prevHash = (lastMB == null) ? "" : generateHash(lastMB.serialize());
     curr.setPrevHash(prevHash);
-    // TODO: implement the process message part
     synchronized (miner) {
-		miner.notify();
-	}
+      miner.notify();
+    }
   }
-  
+
   /**
    * Using the given byte array to generate the hash.
    * 
@@ -162,13 +155,13 @@ public class Receiver {
       processMessage();
     }
   }
-  
+
   public void notifyAllToStopMining(Long pow) {
-	  for(String key : peer.getPeerKeys()) {
-		  PeerInfo pd = peer.getPeer(key);
-		  peer.connectAndSend(pd, MessageType.STOPPROC, pow.toString(), false);
-	  }
-	  setPow(pow);
+    for (String key : peer.getPeerKeys()) {
+      PeerInfo pd = peer.getPeer(key);
+      peer.connectAndSend(pd, MessageType.STOPPROC, pow.toString(), false);
+    }
+    setPow(pow);
   }
 
   /**
@@ -177,22 +170,23 @@ public class Receiver {
    * @param pow
    */
   public void setPow(Long pow) {
-	if(miner.isMining()) miner.stopMining();
+    if (miner.isMining())
+      miner.stopMining();
     curr.setPow(pow);
     this.addMessageBlock(curr);
     curr = buffer;
     buffer = new MessageBlock();
     processMessage();
   }
-  
+
   public void setBuffer(MessageBlock buffer) {
     this.buffer = buffer;
   }
-  
+
   public int getBufferSize() {
     return buffer.getMessages().size();
   }
-  
+
   public String getMessageAt(int i) {
     return Arrays.toString(buffer.getMessages().get(i));
   }
@@ -200,15 +194,15 @@ public class Receiver {
   public int getBlockChainSize() {
     return blockChain.size();
   }
-  
+
   private void addMessageBlock(MessageBlock mb) {
-	  blockChain.push(mb);
+    blockChain.push(mb);
   }
 
   public MessageBlock getMessageBlockAt(int i) {
     return blockChain.get(i);
   }
-  
+
   public MessageBlock getBuffer() {
     return buffer;
   }
