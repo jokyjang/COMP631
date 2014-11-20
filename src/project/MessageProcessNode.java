@@ -56,12 +56,13 @@ public class MessageProcessNode extends Node {
 
     this.addPeer(pd);
 
-    resplist = this.connectAndSend(pd, MessageType.FETCHBUF, "", true);
-
-    if (resplist.size() == 1) {
-      PeerMessage pm = resplist.get(0);
-      receiver.setBuffer(MessageBlock.deserialize(pm.getMsgDataBytes()));
-    }
+    // TODO: Fix the inconsistency of fetch buffer from other peer.
+    /*
+     * resplist = this.connectAndSend(pd, MessageType.FETCHBUF, "", true);
+     * 
+     * if (resplist.size() == 1) { PeerMessage pm = resplist.get(0);
+     * receiver.setBuffer(MessageBlock.deserialize(pm.getMsgDataBytes())); }
+     */
 
     // do recursive depth first search to add more peers
     resplist = this.connectAndSend(pd, MessageType.LISTPEER, "", true);
