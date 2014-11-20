@@ -13,7 +13,7 @@ public class MessageBlock implements Serializable {
   private Long pow;
 
   public MessageBlock() {
-    prevHash = null;
+    prevHash = "";
     messages = new ArrayList<byte[]>();
     pow = 0L;
   }
