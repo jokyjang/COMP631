@@ -14,7 +14,8 @@ public class Receiver {
 
   private class Miner extends Thread {
     private boolean stop = true;
-    private int constraint = 24;
+    private boolean finish = false;
+    private final int CONSTRAINT = 22;
 
     /**
      * This method will check if the first few bits of `hash' are 0. As for the number of bits, it
@@ -26,6 +27,7 @@ public class Receiver {
     private boolean isValid(String hashValue) {
       int i = 0;
       byte[] hash = DatatypeConverter.parseBase64Binary(hashValue);
+      int constraint = CONSTRAINT;
       while (i < hash.length && constraint >= Byte.SIZE) {
         if (hash[i] != 0)
           return false;
@@ -39,36 +41,42 @@ public class Receiver {
 
     private Long mine() {
       System.out.println("Miner starts mining!");
-      stop = false;
+      //stop = false;
       Random random = new Random();
       String hash = null;
       do {
         curr.setPow(random.nextLong());
         hash = generateHash(curr.serialize());
-      } while (!stop && !isValid(hash));
+      } while (isMining() && !isValid(hash));
 
       System.out.println("miner stops mining! stop = " + stop);
-      if (stop)
+      if (!isMining())
         return null;
-      stop = true;
+      stopMining();
+      System.out.println("I've mined the hash: " + hash);
       return curr.getPow();
     }
 
     public void stopMining() {
       stop = true;
     }
+    
+    public void finishMining() {
+    	finish = true;
+    }
+    
+    public void startMining() {
+    	stop = false;
+    }
+    
+    public boolean finished() {
+    	return finish;
+    }
 
     public void run() {
       while (true) {
-        try {
-          synchronized (this) {
-            this.wait();
-          }
-
-        } catch (InterruptedException e) {
-          // e.printStackTrace();
-          break;
-        }
+        while(!isMining() && !finished());
+        if(finished()) break;
         Long pow = mine();
         if (pow != null) {
           notifyAllToStopMining(pow);
@@ -117,9 +125,8 @@ public class Receiver {
     MessageBlock lastMB = getLastMessageBlock();
     String prevHash = (lastMB == null) ? "" : generateHash(lastMB.serialize());
     curr.setPrevHash(prevHash);
-    synchronized (miner) {
-      miner.notify();
-    }
+    System.out.println("process message!");
+    miner.startMining();
   }
 
   /**
@@ -157,6 +164,7 @@ public class Receiver {
   }
 
   public void notifyAllToStopMining(Long pow) {
+	System.out.println("notify all to stop mining!");
     for (String key : peer.getPeerKeys()) {
       PeerInfo pd = peer.getPeer(key);
       peer.connectAndSend(pd, MessageType.STOPPROC, pow.toString(), false);
@@ -197,6 +205,7 @@ public class Receiver {
 
   private void addMessageBlock(MessageBlock mb) {
     blockChain.push(mb);
+    System.out.println("a new mb added in message block chain: " + mb.getPrevHash());
   }
 
   public MessageBlock getMessageBlockAt(int i) {
