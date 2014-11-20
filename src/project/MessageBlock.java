@@ -1,6 +1,7 @@
 package project;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,11 +42,41 @@ public class MessageBlock implements Serializable {
 
   // TODO : Implements this method
   public byte[] serialize() {
-    return null;
+	int length = Integer.SIZE / Byte.SIZE + prevHash.length();
+	length += Integer.SIZE / Byte.SIZE;
+	if(!messages.isEmpty()) {
+		for(byte[] message : messages) {
+			length += Integer.SIZE / Byte.SIZE;
+			length += message.length;
+		}
+	}
+	length += Long.SIZE / Byte.SIZE;
+	ByteBuffer buffer = ByteBuffer.allocate(length);
+	
+	buffer.putInt(prevHash.length());
+	buffer.put(prevHash.getBytes());
+	buffer.putInt(messages.size());
+	for(byte[] message : messages) {
+		buffer.putInt(message.length);
+		buffer.put(message);
+	}
+	buffer.putLong(pow);
+	
+    return buffer.array();
   }
 
   // TODO : Implements this method
   public static MessageBlock deserialize(byte[] data) {
+	ByteBuffer buffer = ByteBuffer.wrap(data);
+	MessageBlock mb = new MessageBlock();
+	int length = buffer.getInt();
+	byte[] prevHashByte = new byte[length];
+	buffer.get(prevHashByte);
+	mb.setPrevHash(prevHashByte.toString());
+	length = buffer.getInt();
+	for(int i = 0; i < length; ++i) {
+		int l = buffer.getInt();
+	}
     return null;
   }
 }

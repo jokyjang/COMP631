@@ -14,11 +14,11 @@ public class Receiver {
 
   @SuppressWarnings("unused")
   private MessageProcessNode peer;
-  MessageBlock buffer;
-  MessageBlock curr;
-  List<MessageBlock> blockChain;
-  boolean init = true;
-  int startProcessingSize;
+  private MessageBlock buffer;
+  private MessageBlock curr;
+  private List<MessageBlock> blockChain;
+  private boolean init = true;
+  private int startProcessingSize;
 
   public Receiver(MessageProcessNode peer) {
     this(peer, DEFAULT_START_PROCESSING_SIZE);
