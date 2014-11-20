@@ -1,5 +1,10 @@
 package project;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -41,7 +46,7 @@ public class Receiver {
 
     private Long mine() {
       System.out.println("Miner starts mining!");
-      //stop = false;
+      // stop = false;
       Random random = new Random();
       String hash = null;
       do {
@@ -60,23 +65,26 @@ public class Receiver {
     public void stopMining() {
       stop = true;
     }
-    
+
     public void finishMining() {
-    	finish = true;
+      finish = true;
     }
-    
+
     public void startMining() {
-    	stop = false;
+      stop = false;
     }
-    
+
     public boolean finished() {
-    	return finish;
+      return finish;
     }
 
     public void run() {
       while (true) {
-        while(!isMining() && !finished()) {System.out.print("");}
-        if(finished()) break;
+        while (!isMining() && !finished()) {
+          System.out.print("");
+        }
+        if (finished())
+          break;
         Long pow = mine();
         if (pow != null) {
           notifyAllToStopMining(pow);
@@ -98,6 +106,7 @@ public class Receiver {
   private boolean init = true;
   private int startProcessingSize;
   private Miner miner;
+  private PrintWriter writer;
 
   public Receiver(MessageProcessNode peer) {
     this(peer, DEFAULT_START_PROCESSING_SIZE);
@@ -107,6 +116,12 @@ public class Receiver {
     this.peer = peer;
     buffer = new MessageBlock();
     this.startProcessingSize = startSize;
+    try {
+      writer = new PrintWriter("/Users/Shared" + peer.getId());
+    } catch (FileNotFoundException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     blockChain = new Stack<MessageBlock>();
     miner = new Miner();
     miner.start();
@@ -122,10 +137,10 @@ public class Receiver {
    * @param prevHash
    */
   public void processMessage() {
-    //MessageBlock lastMB = getLastMessageBlock();
-    //String prevHash = (lastMB == null) ? "" : generateHash(lastMB.serialize());
-    //curr.setPrevHash(prevHash);
-    //System.out.println("process message!");
+    // MessageBlock lastMB = getLastMessageBlock();
+    // String prevHash = (lastMB == null) ? "" : generateHash(lastMB.serialize());
+    // curr.setPrevHash(prevHash);
+    // System.out.println("process message!");
     miner.startMining();
   }
 
@@ -164,7 +179,7 @@ public class Receiver {
   }
 
   public void notifyAllToStopMining(Long pow) {
-	System.out.println("notify all to stop mining!");
+    System.out.println("notify all to stop mining!");
     for (String key : peer.getPeerKeys()) {
       PeerInfo pd = peer.getPeer(key);
       peer.connectAndSend(pd, MessageType.STOPPROC, pow.toString(), false);
@@ -205,6 +220,11 @@ public class Receiver {
 
   private void addMessageBlock(MessageBlock mb) {
     blockChain.push(mb);
+    for (byte[] b : mb.getMessages()) {
+      writer.println(blockChain.size() + "\t" + DatatypeConverter.printBase64Binary(b));
+    }
+    writer.println(blockChain.size() + "\t" + mb.getPow());
+    writer.flush();
     System.out.println("New Message Block: " + this.generateHash(mb.serialize()));
   }
 
