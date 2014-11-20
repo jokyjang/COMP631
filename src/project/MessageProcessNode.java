@@ -1,6 +1,5 @@
 package project;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
@@ -59,11 +58,9 @@ public class MessageProcessNode extends Node {
 
     resplist = this.connectAndSend(pd, MessageType.FETCHBUF, "", true);
 
-    if (resplist.size() > 1) {
-      resplist.remove(0);
-      for (PeerMessage pm : resplist) {
-        receiver.addMessage(pm.getMsgData());
-      }
+    if (resplist.size() == 1) {
+      PeerMessage pm = resplist.get(0);
+      receiver.setBuffer(MessageBlock.deserialize(pm.getMsgDataBytes()));
     }
 
     // do recursive depth first search to add more peers
@@ -176,13 +173,12 @@ public class MessageProcessNode extends Node {
     }
 
     public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
-      List<byte[]> bufferMsg = receiver.getBuffer().getMessages();
-      peerconn.sendData(new PeerMessage(MessageType.REPLY, bufferMsg.size() + ""));
-      for (byte[] msgToSend : bufferMsg) {
-        peerconn.sendData(new PeerMessage(MessageType.REPLY, Arrays.toString(msgToSend)));
-      }
+      peerconn.sendData(new PeerMessage(MessageType.REPLY, receiver.getBuffer().serialize()));
+      /*
+       * for (byte[] msgToSend : buffer) { peerconn.sendData(new PeerMessage(MessageType.REPLY,
+       * Arrays.toString(msgToSend))); }
+       */
     }
-
   }
 
   /* msg syntax: STOP */

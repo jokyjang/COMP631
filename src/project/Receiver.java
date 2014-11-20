@@ -88,6 +88,10 @@ public class Receiver {
     processMessage(generateHash(curr.serialize()));
   }
   
+  public void setBuffer(MessageBlock buffer) {
+    this.buffer = buffer;
+  }
+  
   public int getBufferSize() {
     return buffer.getMessages().size();
   }
