@@ -1,9 +1,6 @@
 package project;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -20,7 +17,7 @@ public class Receiver {
   private class Miner extends Thread {
     private boolean stop = true;
     private boolean finish = false;
-    private final int CONSTRAINT = 22;
+    private final int CONSTRAINT = 24;
 
     /**
      * This method will check if the first few bits of `hash' are 0. As for the number of bits, it
@@ -225,7 +222,7 @@ public class Receiver {
     }
     writer.println(blockChain.size() + "\t" + mb.getPow());
     writer.flush();
-    System.out.println("New Message Block: " + this.generateHash(mb.serialize()));
+    System.out.println("New Message Block: " + Receiver.generateHash(mb.serialize()));
   }
 
   public MessageBlock getMessageBlockAt(int i) {
