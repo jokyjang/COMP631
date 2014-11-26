@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Random;
 
 public class MessageBlock {
-  //private String prevHash;
+  // private String prevHash;
   private List<byte[]> messages;
   private Long pow;
 
   public MessageBlock() {
-    //prevHash = null;
+    // prevHash = null;
     messages = new ArrayList<byte[]>();
     pow = 0L;
   }
@@ -34,15 +34,11 @@ public class MessageBlock {
   }
 
   /*
-  public void setPrevHash(String prevHash) {
-    this.prevHash = prevHash;
-  }
- 
-
-  public String getPrevHash() {
-    return prevHash;
-  }
-  */
+   * public void setPrevHash(String prevHash) { this.prevHash = prevHash; }
+   * 
+   * 
+   * public String getPrevHash() { return prevHash; }
+   */
 
   // TODO : Implements this method
   public byte[] serialize() {
@@ -89,7 +85,7 @@ public class MessageBlock {
    */
   public static MessageBlock generateRandom() {
     MessageBlock mb = new MessageBlock();
-    //mb.setPrevHash("ImPrevHash");
+    // mb.setPrevHash("ImPrevHash");
     int length = new Random().nextInt(20);
     for (int i = 0; i < length; ++i) {
       byte[] message = new byte[10];

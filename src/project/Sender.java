@@ -2,26 +2,33 @@ package project;
 
 import java.util.Random;
 
+import javax.xml.bind.DatatypeConverter;
+
+import peerbase.PeerInfo;
+
 public class Sender extends Thread {
   public static final int DEFAULT_MESSAGE_LENGTH = 80;
-  public static final int DEFAULT_LOWER_BOUND = 1000;
-  public static final int DEFAULT_UPPER_BOUND = 2000;
+  public static final long DEFAULT_LOWER_BOUND = 1000;
+  public static final long DEFAULT_UPPER_BOUND = 2000;
+  public static final double DEFAULT_LOSS_RATE = 0;
   private boolean sendFlag = false;
   private int messageLength;
   private long lower;
   private long upper;
+  private double lossRate;
 
   private MessageProcessNode peer;
 
-  public Sender(MessageProcessNode p) {
-    this(p, DEFAULT_MESSAGE_LENGTH, DEFAULT_LOWER_BOUND, DEFAULT_UPPER_BOUND);
+  public Sender(MessageProcessNode peer) {
+    this(peer, DEFAULT_MESSAGE_LENGTH, DEFAULT_LOWER_BOUND, DEFAULT_UPPER_BOUND, DEFAULT_LOSS_RATE);
   }
 
-  public Sender(MessageProcessNode p, int ml, long l, long u) {
-    this.peer = p;
-    this.messageLength = ml;
-    this.lower = l;
-    this.upper = u;
+  public Sender(MessageProcessNode peer, int messageLength, long lower, long upper, double lossRate) {
+    this.peer = peer;
+    this.messageLength = messageLength;
+    this.lower = lower;
+    this.upper = upper;
+    this.lossRate = lossRate;
   }
 
   private byte[] generateRandomMessage() {
@@ -42,7 +49,7 @@ public class Sender extends Thread {
         e.printStackTrace();
       }
       byte[] message = this.generateRandomMessage();
-      peer.broadCast(message);
+      broadcast(message);
     }
   }
 
@@ -76,5 +83,32 @@ public class Sender extends Thread {
 
   public void setUpper(long upper) {
     this.upper = upper;
+  }
+
+  public double getLossRate() {
+    return lossRate;
+  }
+
+  public void setLossRate(double lossRate) {
+    this.lossRate = lossRate;
+  }
+
+  /**
+   * This method will broadcast message to all the other peers it connects.
+   * 
+   * @param message
+   */
+  public void broadcast(byte[] message) {
+    String strMsg = DatatypeConverter.printBase64Binary(message);
+    Random r = new Random();
+    for (String pid : peer.getPeerKeys()) {
+      PeerInfo info = peer.getPeer(pid);
+      if (r.nextDouble() > lossRate) {
+        peer.connectAndSend(info, MessageType.RECVMSG,
+            String.format("%s %s", this.getId(), strMsg), false);
+      }
+    }
+    PeerInfo info = new PeerInfo(peer.getHost(), peer.getPort());
+    peer.connectAndSend(info, MessageType.RECVMSG, String.format("%s %s", getId(), strMsg), false);
   }
 }

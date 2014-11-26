@@ -95,6 +95,7 @@ public class Receiver {
   }
 
   static final int DEFAULT_START_PROCESSING_SIZE = 20;
+  static final double DEFAULT_LOSS_RATE = 0;
 
   private MessageProcessNode peer;
   private MessageBlock buffer;
@@ -104,19 +105,20 @@ public class Receiver {
   private int startProcessingSize;
   private Miner miner;
   private PrintWriter writer;
+  private double lossRate;
 
   public Receiver(MessageProcessNode peer) {
-    this(peer, DEFAULT_START_PROCESSING_SIZE);
+    this(peer, DEFAULT_START_PROCESSING_SIZE, DEFAULT_LOSS_RATE);
   }
 
-  public Receiver(MessageProcessNode peer, int startSize) {
+  public Receiver(MessageProcessNode peer, int startSize, double lossRate) {
     this.peer = peer;
     buffer = new MessageBlock();
     this.startProcessingSize = startSize;
+    this.lossRate = lossRate;
     try {
       writer = new PrintWriter("/Users/Shared/" + peer.getId());
     } catch (FileNotFoundException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     blockChain = new Stack<MessageBlock>();
@@ -166,7 +168,9 @@ public class Receiver {
    */
   public void addMessage(String msg) {
     byte[] msgByte = DatatypeConverter.parseBase64Binary(msg);
-    buffer.addMessage(msgByte);
+    if (new Random().nextDouble() > lossRate) {
+      buffer.addMessage(msgByte);
+    }
     if (init && buffer.getMessages().size() >= startProcessingSize) {
       init = false;
       curr = buffer;
@@ -231,5 +235,13 @@ public class Receiver {
 
   public MessageBlock getBuffer() {
     return buffer;
+  }
+
+  public double getLossRate() {
+    return lossRate;
+  }
+
+  public void setLossRate(double lossRate) {
+    this.lossRate = lossRate;
   }
 }

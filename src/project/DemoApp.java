@@ -22,6 +22,15 @@ import peerbase.util.SimplePingStabilizer;
 @SuppressWarnings("serial")
 public class DemoApp extends JFrame {
 
+  private class Option {
+    String flag, opt;
+
+    public Option(String flag, String opt) {
+      this.flag = flag;
+      this.opt = opt;
+    }
+  }
+
   private static final int FRAME_WIDTH = 665, FRAME_HEIGHT = 265;
 
   private JPanel messagePanel, peersPanel;

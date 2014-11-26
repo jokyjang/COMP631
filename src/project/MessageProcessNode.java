@@ -230,20 +230,4 @@ public class MessageProcessNode extends Node {
         return null;
     }
   }
-
-  /**
-   * This method will broadcast message to all the other peers it connects.
-   * 
-   * @param message
-   */
-  public void broadCast(byte[] message) {
-    String strMsg = DatatypeConverter.printBase64Binary(message);
-    for (String pid : getPeerKeys()) {
-      PeerInfo info = getPeer(pid);
-      connectAndSend(info, MessageType.RECVMSG, String.format("%s %s", this.getId(), strMsg), false);
-    }
-    PeerInfo info = new PeerInfo(this.getHost(), this.getPort());
-    connectAndSend(info, MessageType.RECVMSG, String.format("%s %s", getId(), strMsg), false);
-  }
-
 }
