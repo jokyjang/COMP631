@@ -105,7 +105,7 @@ public class Sender extends Thread {
       PeerInfo info = peer.getPeer(pid);
       if (r.nextDouble() > lossRate) {
         peer.connectAndSend(info, MessageType.RECVMSG,
-            String.format("%s %s", this.getId(), strMsg), false);
+            String.format("%s %s", peer.getId(), strMsg), false);
       }
     }
     PeerInfo info = new PeerInfo(peer.getHost(), peer.getPort());
