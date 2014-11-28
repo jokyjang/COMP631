@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -21,23 +23,17 @@ import peerbase.util.SimplePingStabilizer;
 
 @SuppressWarnings("serial")
 public class DemoApp extends JFrame {
-
-  private class Option {
-    String flag, opt;
-
-    public Option(String flag, String opt) {
-      this.flag = flag;
-      this.opt = opt;
-    }
-  }
-
   private static final int FRAME_WIDTH = 665, FRAME_HEIGHT = 265;
 
   private JPanel messagePanel, peersPanel;
   private JPanel lowerFilesPanel, lowerPeersPanel;
   private DefaultListModel messageModel, peersModel;
   private JList messageList, peersList;
-
+  private List<Double> delay;
+  private List<Double> lossrate;
+  private double sentFreq;
+  private int powSpeed;
+  private int peerNum;
 
   private JButton startButton, lowerBoundButton, messageSizeButton;
   private JButton removePeersButton, refreshPeersButton, upperBoundButton;
@@ -47,9 +43,11 @@ public class DemoApp extends JFrame {
 
   private MessageProcessNode peer;
 
-  public DemoApp(String initialhost, int initialport, int maxpeers, PeerInfo mypd) {
+  public DemoApp(String initialhost, int initialport, int maxpeers, PeerInfo mypd, String[] args) {
     peer = new MessageProcessNode(maxpeers, mypd);
     peer.buildPeers(initialhost, initialport, 2);
+
+    composeRandomNumber(args);
 
     startButton = new JButton("Start");
     startButton.addActionListener(new StartListener());
@@ -89,6 +87,39 @@ public class DemoApp extends JFrame {
     new javax.swing.Timer(3000, new RefreshListener()).start();
 
     peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
+  }
+
+
+  private void composeRandomNumber(String[] args) {
+    int size = args.length;
+    int count = 1;
+    if (args.length % 2 == 0) {
+      count = 0;
+    } else {
+      count = 1;
+    }
+    while (size > 1) {
+      switch (args[count++]) {
+        case "-d":
+          delay = ParameterGenerator.logNormalGenerator(Integer.parseInt(args[count++]), peerNum);
+          break;
+        case "-f":
+          sentFreq =
+              ParameterGenerator.logNormalGenerator(Integer.parseInt(args[count++]), 1).get(0);
+          break;
+        case "-l":
+          lossrate =
+              ParameterGenerator.exponentialGenerator(Integer.parseInt(args[count++]), peerNum);
+          break;
+        case "-s":
+          powSpeed = Integer.parseInt(args[count++]);
+          peer.receiver.setConstraint(powSpeed);
+          break;
+        default:
+          break;
+      }
+      size -= 2;
+    }
   }
 
 
