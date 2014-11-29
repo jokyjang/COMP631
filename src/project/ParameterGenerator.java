@@ -35,8 +35,8 @@ public class ParameterGenerator {
 	public List<Double> delayGenerator(int size) {
 		LogNormalDistribution lnd = new LogNormalDistribution(this.delayMu, this.delaySigma);
 		List<Double> list = new ArrayList<Double>(size);
-		double[] sample = lnd.sample(size);
-		for(double s : sample) {
+		for(int i = 0; i < size; ++i) {
+			double s = lnd.sample();
 			list.add(s);
 			System.out.println("Delay time for some peer is: " + s);
 		}
