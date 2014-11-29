@@ -173,6 +173,8 @@ public class Sender extends Thread {
 			        }
 			        peer.connectAndSend(info, MessageType.RECVMSG,
 			            String.format("%s %s", peer.getId(), msg), false);
+			  } else {
+				  System.out.print("");
 			  }
 		  } 
 	  }
