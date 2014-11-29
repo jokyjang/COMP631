@@ -69,13 +69,13 @@ public class DemoApp extends JFrame {
 
     setupFrame(this);
 
-    /*
+    
     (new Thread() {
       public void run() {
         peer.mainLoop();
       }
     }).start();
-    */
+    
     
     (new Thread() {
     	public void run() {
@@ -84,12 +84,14 @@ public class DemoApp extends JFrame {
     	}
     }).start();
 
-    //new javax.swing.Timer(3000, new RefreshListener()).start();
-    //peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
+    new javax.swing.Timer(3000, new RefreshListener()).start();
+    peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
   }
   
   private void waitingForAllPeers() {
-	  //while(this.peer.getNumberOfPeers() != this.peer.getMaxPeers()) {System.out.print("");}
+	  System.out.println("waiting for all the peers!");
+	  while(this.peer.getNumberOfPeers() != this.peer.getMaxPeers()) {System.out.print("");}
+	  System.out.println("all the peers come in");
   }
   private ParameterGenerator pg;
   
@@ -98,11 +100,12 @@ public class DemoApp extends JFrame {
 				{ 2.233054814, 2.615, 0.3420596887, 0.7518, 0.99, 24 },
 				{ 0.4411860876, 1.432, 0.8316800206, 0.3722, 0.95, 26 },
 				{ 0.2745185094, 0.9837, 1.634275672, 0.1576, 0.9, 28 } };
-		
-		for (int i = 0; i < 3; ++i) {
-			for (int j = 0; j < 3; ++j) {
-				for (int k = 0; k < 3; ++k) {
-					for (int l = 0; l < 3; ++l) {
+		int counter = 1;
+		for (int i = 0; i < 1; ++i) {
+			for (int j = 0; j < 1; ++j) {
+				for (int k = 0; k < 1; ++k) {
+					for (int l = 0; l < 1; ++l) {
+						System.out.println("round " + counter);
 						pg = new ParameterGenerator(prms[i][0], prms[i][1],
 								prms[j][2], prms[j][3], prms[k][4], (int)prms[l][5]);
 						PrintWriter writer = null;
@@ -114,6 +117,7 @@ public class DemoApp extends JFrame {
 						this.peer.receiver.setWriter(writer);
 						runOneLoop(pg);
 						writer.close();
+						++counter;
 					}
 				}
 			}
@@ -153,9 +157,7 @@ public class DemoApp extends JFrame {
     upperPanel.setPreferredSize(new Dimension(FRAME_WIDTH, (FRAME_HEIGHT * 2 / 3)));
     lowerPanel.setLayout(new GridLayout(1, 2));
 
-
     frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
-
     messageModel = new DefaultListModel();
     messageList = new JList(messageModel);
     peersModel = new DefaultListModel();
@@ -190,7 +192,7 @@ public class DemoApp extends JFrame {
     frame.add(upperPanel, BorderLayout.NORTH);
     frame.add(lowerPanel, BorderLayout.CENTER);
 
-    frame.setVisible(false);
+    frame.setVisible(true);
   }
 
 
