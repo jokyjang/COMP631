@@ -5,6 +5,8 @@ import java.util.Random;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
+
 import peerbase.PeerInfo;
 
 public class Sender extends Thread {
@@ -26,6 +28,8 @@ public class Sender extends Thread {
   private long waitTime;
   private long[] delayTime;
   private boolean[] loss;
+  
+  private PeerSender[] peerSender;
 
   public Sender(MessageProcessNode peer) {
     this(peer, DEFAULT_MESSAGE_LENGTH, DEFAULT_LOWER_BOUND, DEFAULT_UPPER_BOUND, DEFAULT_LOSS_RATE);
@@ -48,6 +52,19 @@ public class Sender extends Thread {
     waitTime = 0;
     delayTime = new long[peer.getMaxPeers()];
     loss = new boolean[peer.getMaxPeers()];
+  }
+  
+  /*
+   * This method must be called after all the peers joined in.
+   */
+  public void initPeerSender() {
+	  peerSender = new PeerSender[peer.getMaxPeers()];
+	  int i = 0;
+	  for(String info : peer.getPeerKeys()) {
+		  peerSender[i] = new PeerSender(peer.getPeer(info), i);
+		  peerSender[i].start();
+		  ++i;
+	  }
   }
 
   private byte[] generateRandomMessage() {
@@ -124,6 +141,42 @@ public class Sender extends Thread {
 
   public void setLossRate(double lossRate) {
     this.lossRate = lossRate;
+  }
+  
+  private class PeerSender extends Thread {
+	  private int id;
+	  private PeerInfo info;
+	  private boolean sendMessage;
+	  private String msg;
+	  private NormalDistribution nd;
+	  
+	  public PeerSender(PeerInfo pi, int i) {
+		  this.info = pi;
+		  id = i;
+		  sendMessage = false;
+		  nd = new NormalDistribution(delays.get(id), delays.get(id)/5.0);
+	  }
+	  
+	  public void send(String strMsg) {
+		  msg = strMsg;
+		  sendMessage = true;
+	  }
+	  public void run() {
+		  while(true) {
+			  if(sendMessage) {
+				  sendMessage = false;
+				  try {
+					  delayTime[id] = (long)nd.sample();
+					  while(delayTime[id] < 0) delayTime[id] = (long)nd.sample();
+			          Thread.sleep(delayTime[id]);
+			        } catch (InterruptedException e) {
+			          e.printStackTrace();
+			        }
+			        peer.connectAndSend(info, MessageType.RECVMSG,
+			            String.format("%s %s", peer.getId(), msg), false);
+			  }
+		  } 
+	  }
   }
 
   /**
