@@ -148,13 +148,11 @@ public class Sender extends Thread {
 	  private PeerInfo info;
 	  private boolean sendMessage;
 	  private String msg;
-	  private NormalDistribution nd;
 	  
 	  public PeerSender(PeerInfo pi, int i) {
 		  this.info = pi;
 		  id = i;
 		  sendMessage = false;
-		  nd = new NormalDistribution(delays.get(id), delays.get(id)/5.0);
 	  }
 	  
 	  public void send(String strMsg) {
@@ -166,6 +164,7 @@ public class Sender extends Thread {
 			  if(sendMessage) {
 				  sendMessage = false;
 				  try {
+					  NormalDistribution nd = new NormalDistribution(delays.get(id), delays.get(id)/5.0);
 					  delayTime[id] = (long)nd.sample();
 					  while(delayTime[id] < 0) delayTime[id] = (long)nd.sample();
 			          Thread.sleep(delayTime[id]);
@@ -187,24 +186,13 @@ public class Sender extends Thread {
   public void broadcast(byte[] message) {
     String strMsg = DatatypeConverter.printBase64Binary(message);
     Random r = new Random();
-    int i = 0;
-    for (String pid : peer.getPeerKeys()) {
-      PeerInfo info = peer.getPeer(pid);
+    for (int i = 0; i < peer.getMaxPeers(); ++i) {
       if (r.nextDouble() > lossRates.get(i)) {
     	loss[i] = false;
-        try {
-          // long sleepTime = (long)(delays.get(i) * 1000 + Math.abs(r.nextGaussian()));
-          delayTime[i] = (long) (delays.get(i) + 0.0);
-          Thread.sleep(delayTime[i]);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-        peer.connectAndSend(info, MessageType.RECVMSG,
-            String.format("%s %s", peer.getId(), strMsg), false);
+    	peerSender[i].send(strMsg);
       } else {
     	  loss[i] = true;
       }
-      ++i;
     }
     PeerInfo info = new PeerInfo(peer.getHost(), peer.getPort());
     peer.connectAndSend(info, MessageType.RECVMSG, String.format("%s %s", getId(), strMsg), false);
