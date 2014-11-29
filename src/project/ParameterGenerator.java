@@ -6,6 +6,7 @@ import java.util.Random;
 
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.distribution.LogNormalDistribution;
+import org.apache.commons.math3.distribution.NormalDistribution;
 
 public class ParameterGenerator {
 
@@ -17,10 +18,11 @@ public class ParameterGenerator {
   public double speedSigma;
   public double lossRate;
   public int constraint;
-  LogNormalDistribution speed;
+  // LogNormalDistribution speed;
 
   public double delay;
   public double freq;
+  public NormalDistribution speed;
 
   public ParameterGenerator(double dm, double ds, double sm, double ss, double lr, int ct) {
     this.delayMu = dm;
@@ -29,7 +31,7 @@ public class ParameterGenerator {
     this.speedSigma = ss;
     this.lossRate = lr;
     this.constraint = ct;
-    speed = new LogNormalDistribution(sm, ss);
+    // speed = new LogNormalDistribution(sm, ss);
   }
 
   public ParameterGenerator(double delay, double freq, double lossRate, int constraint) {
@@ -37,10 +39,13 @@ public class ParameterGenerator {
     this.freq = freq;
     this.lossRate = lossRate;
     this.constraint = constraint;
+    speed = new NormalDistribution(freq, freq / 2);
   }
 
   public double nextWaitTime() {
-    return speed.sample();
+    double s = speed.sample();
+    while (s < 0) s = speed.sample();
+    return s;
   }
 
   public List<Double> delayGenerator(int size) {
@@ -67,8 +72,13 @@ public class ParameterGenerator {
 
   public List<Double> delayGenerator2(int size) {
     List<Double> delays = new ArrayList<Double>(size);
+    NormalDistribution nd = new NormalDistribution(delay, delay / 10);
     for (int i = 0; i < size; ++i) {
-      
+      double gaussian = nd.sample();
+      while (gaussian < 0) {
+        gaussian = nd.sample();
+      }
+      delays.add(gaussian);
     }
     return delays;
   }
@@ -77,7 +87,7 @@ public class ParameterGenerator {
     List<Double> peerLossRate = new ArrayList<Double>(size);
     Random r = new Random(System.currentTimeMillis());
     for (int i = 0; i < size; ++i) {
-      peerLossRate.add(lossRate + (1 - lossRate) * r.nextDouble());
+      peerLossRate.add(lossRate * r.nextDouble());
     }
     return peerLossRate;
   }

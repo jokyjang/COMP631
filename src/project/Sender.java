@@ -29,8 +29,8 @@ public class Sender extends Thread {
 
   public void setPG(ParameterGenerator p) {
     pg = p;
-    lossRates = pg.lossRatesGenerator(peer.getMaxPeers());
-    delays = pg.delayGenerator(peer.getMaxPeers());
+    lossRates = pg.lossRateGenerator2(peer.getMaxPeers());
+    delays = pg.delayGenerator2(peer.getMaxPeers());
   }
 
   public Sender(MessageProcessNode peer, int messageLength, long lower, long upper, double lossRate) {
@@ -53,7 +53,7 @@ public class Sender extends Thread {
       if (!this.sendFlag)
         continue;
       // long waitTime = new Random().nextInt((int) (upper - lower)) + lower;
-      long waitTime = (long) (pg.nextWaitTime() * 1000);
+      long waitTime = (long) (pg.nextWaitTime());
       System.out.println("waiting time is: " + waitTime + "ms");
       try {
         Thread.sleep(waitTime);
@@ -124,7 +124,7 @@ public class Sender extends Thread {
         System.out.println("Message not loss");
         try {
           // long sleepTime = (long)(delays.get(i) * 1000 + Math.abs(r.nextGaussian()));
-          long sleepTime = (long) (delays.get(i) * 1000);
+          long sleepTime = (long) (delays.get(i) + 0.0);
           System.out.println("Message delayed for " + sleepTime + "ms");
           Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
