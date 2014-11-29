@@ -98,7 +98,8 @@ public class DemoApp extends JFrame {
             {0.4411860876, 1.432, 0.8316800206, 0.3722, 0.95, 26},
             {0.2745185094, 0.9837, 1.634275672, 0.1576, 0.9, 28}};
     peer.sender.initPeerSender();
-    final double[][] parameters = { {10, 800, 0.0, 24}, {200, 2000, 0.05, 26}, {500, 5000, 0.1, 28}};
+    final double[][] parameters =
+        { {10, 800, 0.0, 24}, {200, 2000, 0.05, 26}, {500, 5000, 0.1, 28}};
     int counter = 1;
     for (int i = 0; i < 1; ++i) {
       for (int j = 0; j < 1; ++j) {
@@ -142,7 +143,9 @@ public class DemoApp extends JFrame {
     }
     this.peer.sender.stopSending();
     System.out.println("waiting for miners to stop mining!");
-    while (this.peer.receiver.getMiner().isMining());
+    while (this.peer.receiver.getMiner().isMining()) {
+      System.out.print("");
+    }
     System.out.println("miners stopped mining!");
   }
 

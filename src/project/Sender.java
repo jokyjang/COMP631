@@ -22,13 +22,13 @@ public class Sender extends Thread {
   private List<Double> lossRates;
   private List<Double> delays;
   private ParameterGenerator pg;
-  private int counter;	// count how many messages have been sent
+  private int counter; // count how many messages have been sent
   private MessageProcessNode peer;
-  
+
   private long waitTime;
   private long[] delayTime;
   private boolean[] loss;
-  
+
   private PeerSender[] peerSender;
 
   public Sender(MessageProcessNode peer) {
@@ -48,23 +48,23 @@ public class Sender extends Thread {
     this.upper = upper;
     this.lossRate = lossRate;
     this.counter = 0;
-    
+
     waitTime = 0;
     delayTime = new long[peer.getMaxPeers()];
     loss = new boolean[peer.getMaxPeers()];
   }
-  
+
   /*
    * This method must be called after all the peers joined in.
    */
   public void initPeerSender() {
-	  peerSender = new PeerSender[peer.getMaxPeers()];
-	  int i = 0;
-	  for(String info : peer.getPeerKeys()) {
-		  peerSender[i] = new PeerSender(peer.getPeer(info), i);
-		  peerSender[i].start();
-		  ++i;
-	  }
+    peerSender = new PeerSender[peer.getMaxPeers()];
+    int i = 0;
+    for (String info : peer.getPeerKeys()) {
+      peerSender[i] = new PeerSender(peer.getPeer(info), i);
+      peerSender[i].start();
+      ++i;
+    }
   }
 
   private byte[] generateRandomMessage() {
@@ -91,12 +91,13 @@ public class Sender extends Thread {
       outputAllStatus();
     }
   }
+
   private void outputAllStatus() {
-	  String str = String.format("M%d: %d, ", counter, waitTime);
-	  for(int i = 0; i < peer.getMaxPeers(); ++i) {
-		  str += String.format("[%d,%s], ", delayTime[i], loss[i]);
-	  }
-	  System.out.println(str);
+    String str = String.format("M%d: %d, ", counter, waitTime);
+    for (int i = 0; i < peer.getMaxPeers(); ++i) {
+      str += String.format("[%d,%s], ", delayTime[i], loss[i]);
+    }
+    System.out.println(str);
   }
 
   public void startSending() {
@@ -142,42 +143,44 @@ public class Sender extends Thread {
   public void setLossRate(double lossRate) {
     this.lossRate = lossRate;
   }
-  
+
   private class PeerSender extends Thread {
-	  private int id;
-	  private PeerInfo info;
-	  private boolean sendMessage;
-	  private String msg;
-	  
-	  public PeerSender(PeerInfo pi, int i) {
-		  this.info = pi;
-		  id = i;
-		  sendMessage = false;
-	  }
-	  
-	  public void send(String strMsg) {
-		  msg = strMsg;
-		  sendMessage = true;
-	  }
-	  public void run() {
-		  while(true) {
-			  if(sendMessage) {
-				  sendMessage = false;
-				  try {
-					  NormalDistribution nd = new NormalDistribution(delays.get(id), delays.get(id)/5.0);
-					  delayTime[id] = (long)nd.sample();
-					  while(delayTime[id] < 0) delayTime[id] = (long)nd.sample();
-			          Thread.sleep(delayTime[id]);
-			        } catch (InterruptedException e) {
-			          e.printStackTrace();
-			        }
-			        peer.connectAndSend(info, MessageType.RECVMSG,
-			            String.format("%s %s", peer.getId(), msg), false);
-			  } else {
-				  System.out.print("");
-			  }
-		  } 
-	  }
+    private int id;
+    private PeerInfo info;
+    private boolean sendMessage;
+    private String msg;
+
+    public PeerSender(PeerInfo pi, int i) {
+      this.info = pi;
+      id = i;
+      sendMessage = false;
+    }
+
+    public void send(String strMsg) {
+      msg = strMsg;
+      sendMessage = true;
+    }
+
+    public void run() {
+      while (true) {
+        if (sendMessage) {
+          sendMessage = false;
+          try {
+            NormalDistribution nd = new NormalDistribution(delays.get(id), delays.get(id) / 5.0);
+            delayTime[id] = (long) nd.sample();
+            while (delayTime[id] < 0)
+              delayTime[id] = (long) nd.sample();
+            Thread.sleep(delayTime[id]);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+          peer.connectAndSend(info, MessageType.RECVMSG, String.format("%s %s", peer.getId(), msg),
+              false);
+        } else {
+          System.out.print("");
+        }
+      }
+    }
   }
 
   /**
@@ -190,10 +193,10 @@ public class Sender extends Thread {
     Random r = new Random();
     for (int i = 0; i < peer.getMaxPeers(); ++i) {
       if (r.nextDouble() > lossRates.get(i)) {
-    	loss[i] = false;
-    	peerSender[i].send(strMsg);
+        loss[i] = false;
+        peerSender[i].send(strMsg);
       } else {
-    	  loss[i] = true;
+        loss[i] = true;
       }
     }
     PeerInfo info = new PeerInfo(peer.getHost(), peer.getPort());
