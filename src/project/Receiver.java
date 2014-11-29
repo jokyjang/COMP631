@@ -120,13 +120,13 @@ public class Receiver {
     miner = new Miner();
     miner.start();
   }
-  
+
   public Miner getMiner() {
-	  return miner;
+    return miner;
   }
-  
+
   public void setWriter(PrintWriter pw) {
-	  this.writer = pw;
+    this.writer = pw;
   }
 
   public MessageBlock getLastMessageBlock() {
@@ -201,10 +201,10 @@ public class Receiver {
       miner.stopMining();
     curr.setPow(pow);
     this.addMessageBlock(curr);
-    if(buffer.getMessages().isEmpty()) {
-    	init = true;
-    	curr = null;
-    	return;
+    if (buffer.getMessages().isEmpty()) {
+      init = true;
+      curr = null;
+      return;
     }
     curr = buffer;
     buffer = new MessageBlock();
@@ -252,7 +252,7 @@ public class Receiver {
   public void setLossRate(double lossRate) {
     this.lossRate = lossRate;
   }
-  
+
   public void setConstraint(int constraint) {
     miner.cons = constraint;
   }

@@ -48,7 +48,7 @@ public class DemoApp extends JFrame {
     peer = new MessageProcessNode(maxpeers, mypd);
     peer.buildPeers(initialhost, initialport, 2);
 
-    //composeRandomNumber(args);
+    // composeRandomNumber(args);
 
     startButton = new JButton("Start");
     startButton.addActionListener(new StartListener());
@@ -69,77 +69,81 @@ public class DemoApp extends JFrame {
 
     setupFrame(this);
 
-    
+
     (new Thread() {
       public void run() {
         peer.mainLoop();
       }
     }).start();
-    
-    
+
+
     (new Thread() {
-    	public void run() {
-    		waitingForAllPeers();
-    		mainLoop();
-    	}
+      public void run() {
+        waitingForAllPeers();
+        mainLoop();
+      }
     }).start();
 
     new javax.swing.Timer(3000, new RefreshListener()).start();
     peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
   }
-  
+
   private void waitingForAllPeers() {
-	  System.out.println("waiting for all the peers!");
-	  while(this.peer.getNumberOfPeers() != this.peer.getMaxPeers()) {System.out.print("");}
-	  System.out.println("all the peers come in");
+    System.out.println("waiting for all the peers!");
+    while (this.peer.getNumberOfPeers() != this.peer.getMaxPeers()) {
+      System.out.print("");
+    }
+    System.out.println("all the peers come in");
   }
+
   private ParameterGenerator pg;
-  
-	private void mainLoop() {
-		final double[][] prms = {
-				{ 1.417976538, 2.45421, 0.3420596887, 0.7518, 1.00, 24 },
-				{ 0.4411860876, 1.432, 0.8316800206, 0.3722, 0.95, 26 },
-				{ 0.2745185094, 0.9837, 1.634275672, 0.1576, 0.9, 28 } };
-		int counter = 1;
-		for (int i = 0; i < 1; ++i) {
-			for (int j = 0; j < 1; ++j) {
-				for (int k = 0; k < 1; ++k) {
-					for (int l = 0; l < 1; ++l) {
-						System.out.println("round " + counter);
-						pg = new ParameterGenerator(prms[i][0], prms[i][1],
-								prms[j][2], prms[j][3], prms[k][4], (int)prms[l][5]);
-						PrintWriter writer = null;
-						try {
-						      writer = new PrintWriter("/Users/Shared/" + peer.getId() + "_"+i+j+k);
-						    } catch (FileNotFoundException e) {
-						      e.printStackTrace();
-						    }
-						this.peer.receiver.setWriter(writer);
-						runOneLoop(pg);
-						writer.close();
-						++counter;
-					}
-				}
-			}
-		}
-	}
-  
+
+  private void mainLoop() {
+    final double[][] prms =
+        { {1.417976538, 2.45421, 0.3420596887, 0.7518, 1.00, 24},
+            {0.4411860876, 1.432, 0.8316800206, 0.3722, 0.95, 26},
+            {0.2745185094, 0.9837, 1.634275672, 0.1576, 0.9, 28}};
+    int counter = 1;
+    for (int i = 0; i < 1; ++i) {
+      for (int j = 0; j < 1; ++j) {
+        for (int k = 0; k < 1; ++k) {
+          for (int l = 0; l < 1; ++l) {
+            System.out.println("round " + counter);
+            pg =
+                new ParameterGenerator(prms[i][0], prms[i][1], prms[j][2], prms[j][3], prms[k][4],
+                    (int) prms[l][5]);
+            PrintWriter writer = null;
+            try {
+              writer = new PrintWriter("/Users/Shared/" + peer.getId() + "_" + i + j + k);
+            } catch (FileNotFoundException e) {
+              e.printStackTrace();
+            }
+            this.peer.receiver.setWriter(writer);
+            runOneLoop(pg);
+            writer.close();
+            ++counter;
+          }
+        }
+      }
+    }
+  }
+
   private void runOneLoop(ParameterGenerator pg) {
-	  double sendInterval = Math.exp(pg.speedMu-pg.speedSigma*pg.speedSigma);
-	  double avgDelay = Math.exp(pg.delayMu-pg.delaySigma*pg.delaySigma);
-	  System.out.println("speed time: " + (long)(sendInterval * 1000) + "ms");
-	  System.out.println("delay time: " + (long)(avgDelay * 1000) + "ms");
-	  final int SEND_COUNT = 1000;
-	  long timeToLive = (long)(sendInterval * SEND_COUNT * 1000);
-	  long startTime = System.currentTimeMillis();
-	  this.peer.sender.setPG(pg);
-	  this.peer.receiver.setConstraint(pg.constraint);
-	  this.peer.sender.startSending();
-	  while(System.currentTimeMillis() < startTime + timeToLive) {
-		  System.out.print("");
-	  }
-	  this.peer.sender.stopSending();
-	  while(this.peer.receiver.getMiner().isMining());
+    double sendInterval = Math.exp(pg.speedMu - pg.speedSigma * pg.speedSigma);
+    double avgDelay = Math.exp(pg.delayMu - pg.delaySigma * pg.delaySigma);
+    System.out.println("speed time: " + (long) (sendInterval * 1000) + "ms");
+    System.out.println("delay time: " + (long) (avgDelay * 1000) + "ms");
+    final int SEND_COUNT = 1000;
+    long timeToLive = (long) (sendInterval * SEND_COUNT * 1000);
+    long startTime = System.currentTimeMillis();
+    this.peer.sender.setPG(pg);
+    this.peer.receiver.setConstraint(pg.constraint);
+    this.peer.sender.startSending();
+    while (System.currentTimeMillis() < startTime + timeToLive) {
+      System.out.print("");
+    }
+    this.peer.sender.stopSending();
+    while (this.peer.receiver.getMiner().isMining());
   }
 
   private void setupFrame(JFrame frame) {

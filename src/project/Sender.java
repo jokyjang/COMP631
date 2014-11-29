@@ -26,11 +26,11 @@ public class Sender extends Thread {
   public Sender(MessageProcessNode peer) {
     this(peer, DEFAULT_MESSAGE_LENGTH, DEFAULT_LOWER_BOUND, DEFAULT_UPPER_BOUND, DEFAULT_LOSS_RATE);
   }
-  
+
   public void setPG(ParameterGenerator p) {
-	  pg = p;
-	  lossRates = pg.lossRatesGenerator(peer.getMaxPeers());
-	  delays = pg.delayGenerator(peer.getMaxPeers());
+    pg = p;
+    lossRates = pg.lossRatesGenerator(peer.getMaxPeers());
+    delays = pg.delayGenerator(peer.getMaxPeers());
   }
 
   public Sender(MessageProcessNode peer, int messageLength, long lower, long upper, double lossRate) {
@@ -52,8 +52,8 @@ public class Sender extends Thread {
       System.out.print("");
       if (!this.sendFlag)
         continue;
-      //long waitTime = new Random().nextInt((int) (upper - lower)) + lower;
-      long waitTime = (long)(pg.nextWaitTime()*1000);
+      // long waitTime = new Random().nextInt((int) (upper - lower)) + lower;
+      long waitTime = (long) (pg.nextWaitTime() * 1000);
       System.out.println("waiting time is: " + waitTime + "ms");
       try {
         Thread.sleep(waitTime);
@@ -72,9 +72,9 @@ public class Sender extends Thread {
   public void stopSending() {
     this.sendFlag = false;
   }
-  
+
   public boolean isSending() {
-	  return this.sendFlag;
+    return this.sendFlag;
   }
 
   public int getMessageLength() {
@@ -121,19 +121,19 @@ public class Sender extends Thread {
     for (String pid : peer.getPeerKeys()) {
       PeerInfo info = peer.getPeer(pid);
       if (r.nextDouble() > lossRates.get(i)) {
-    	  System.out.println("Message not loss");
-    	try {
-    		//long sleepTime = (long)(delays.get(i) * 1000 + Math.abs(r.nextGaussian()));
-    		long sleepTime = (long)(delays.get(i) * 1000);
-    		System.out.println("Message delayed for " + sleepTime + "ms");
-    		Thread.sleep(sleepTime);
-    	} catch (InterruptedException e) {
-    		e.printStackTrace();
-    	}
+        System.out.println("Message not loss");
+        try {
+          // long sleepTime = (long)(delays.get(i) * 1000 + Math.abs(r.nextGaussian()));
+          long sleepTime = (long) (delays.get(i) * 1000);
+          System.out.println("Message delayed for " + sleepTime + "ms");
+          Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
         peer.connectAndSend(info, MessageType.RECVMSG,
             String.format("%s %s", peer.getId(), strMsg), false);
       } else {
-    	  System.out.println("Message lost!");
+        System.out.println("Message lost!");
       }
       ++i;
     }
