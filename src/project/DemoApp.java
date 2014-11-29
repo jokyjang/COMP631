@@ -125,13 +125,10 @@ public class DemoApp extends JFrame {
         }
       }
     }
+    System.exit(0);
   }
 
   private void runOneLoop(ParameterGenerator pg) {
-    // double sendInterval = Math.exp(pg.speedMu - pg.speedSigma * pg.speedSigma);
-    // double avgDelay = Math.exp(pg.delayMu - pg.delaySigma * pg.delaySigma);
-    // System.out.println("speed time: " + (long) (sendInterval * 1000) + "ms");
-    // System.out.println("delay time: " + (long) (avgDelay * 1000) + "ms");
     double sendInterval = pg.freq;
     final int SEND_COUNT = 1000;
     long timeToLive = (long) (sendInterval * SEND_COUNT);
@@ -143,7 +140,9 @@ public class DemoApp extends JFrame {
       System.out.print("");
     }
     this.peer.sender.stopSending();
+    System.out.println("waiting for miners to stop mining!");
     while (this.peer.receiver.getMiner().isMining());
+    System.out.println("miners stopped mining!");
   }
 
   private void setupFrame(JFrame frame) {
