@@ -89,39 +89,24 @@ public class DemoApp extends JFrame {
     peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
   }
 
-
   private void composeRandomNumber(String[] args) {
-    int size = args.length;
-    int count = 1;
-    if (args.length % 2 == 0) {
-      count = 0;
-    } else {
-      count = 1;
+    int[] parameters = new int[args.length];
+    for(int i = 0; i < args.length; ++i) {
+    	parameters[i] = Integer.parseInt(args[i]);
     }
-    while (size > 1) {
-      switch (args[count++]) {
-        case "-d":
-          delay = ParameterGenerator.logNormalGenerator(Integer.parseInt(args[count++]), peerNum);
-          break;
-        case "-f":
-          sentFreq =
-              ParameterGenerator.logNormalGenerator(Integer.parseInt(args[count++]), 1).get(0);
-          break;
-        case "-l":
-          lossrate =
-              ParameterGenerator.exponentialGenerator(Integer.parseInt(args[count++]), peerNum);
-          break;
-        case "-s":
-          powSpeed = Integer.parseInt(args[count++]);
-          peer.receiver.setConstraint(powSpeed);
-          break;
-        default:
-          break;
-      }
-      size -= 2;
-    }
+    final double[][] prms = {
+    		{2.233054814,	2.615,	0.468293227,	0.7518,	0.99,	24},
+    		{1.351653996,	1.432,	0.4395628357,	0.3722,	0.95,	26},
+    		{0.6666356943,	0.9837,	0.7238077643,	0.1576,	0.9,	28}
+    };
+    ParameterGenerator.createPG(
+    		prms[parameters[0]][0],
+    		prms[parameters[0]][1],
+    		prms[parameters[1]][2],
+    		prms[parameters[1]][3],
+    		prms[parameters[2]][4],
+    		prms[parameters[3]][5]);
   }
-
 
   private void setupFrame(JFrame frame) {
     /*

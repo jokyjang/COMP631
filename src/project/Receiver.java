@@ -18,7 +18,7 @@ public class Receiver {
     private boolean stop = true;
     private boolean finish = false;
     private final int DEFAULT_CONSTRAINT = 24;
-    private int constraint = 0;
+    private int cons = DEFAULT_CONSTRAINT;
 
     /**
      * This method will check if the first few bits of `hash' are 0. As for the number of bits, it
@@ -30,9 +30,7 @@ public class Receiver {
     private boolean isValid(String hashValue) {
       int i = 0;
       byte[] hash = DatatypeConverter.parseBase64Binary(hashValue);
-      if (constraint == 0) {
-        constraint = DEFAULT_CONSTRAINT;
-      }
+      int constraint = cons;
       while (i < hash.length && constraint >= Byte.SIZE) {
         if (hash[i] != 0)
           return false;
@@ -249,6 +247,6 @@ public class Receiver {
   }
   
   public void setConstraint(int constraint) {
-    miner.constraint = constraint;
+    miner.cons = constraint;
   }
 }
