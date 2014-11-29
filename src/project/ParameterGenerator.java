@@ -1,12 +1,10 @@
 package project;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
+import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.distribution.LogNormalDistribution;
-import org.uncommons.maths.random.ExponentialGenerator;
 
 public class ParameterGenerator {
 	
@@ -40,16 +38,19 @@ public class ParameterGenerator {
 		double[] sample = lnd.sample(size);
 		for(double s : sample) {
 			list.add(s);
+			System.out.println("Delay time for some peer is: " + s);
 		}
 		return list;
 	}
 
   public List<Double> lossRatesGenerator(int size) {
-    ExponentialGenerator rand =
-        new ExponentialGenerator(this.lossRate, new Random(System.currentTimeMillis()));
+    ExponentialDistribution rand =
+        new ExponentialDistribution(this.lossRate);
     List<Double> peerLossRates = new ArrayList<Double>(size);
     for (int i = 0; i < size; i++) {
-      peerLossRates.add(1-rand.nextValue());
+    	double lr = 1 - rand.density(rand.sample());
+      peerLossRates.add(lr);
+      System.out.println("Loss rate for some peer is: " + lr);
     }
     return peerLossRates;
   }

@@ -126,6 +126,9 @@ public class DemoApp extends JFrame {
   
   private void runOneLoop(ParameterGenerator pg) {
 	  double sendInterval = Math.exp(pg.speedMu-pg.speedSigma*pg.speedSigma);
+	  double avgDelay = Math.exp(pg.delayMu-pg.delaySigma*pg.delaySigma);
+	  System.out.println("speed time: " + (long)(sendInterval * 1000) + "ms");
+	  System.out.println("delay time: " + (long)(avgDelay * 1000) + "ms");
 	  final int SEND_COUNT = 1000;
 	  long timeToLive = (long)(sendInterval * SEND_COUNT * 1000);
 	  long startTime = System.currentTimeMillis();
@@ -136,7 +139,7 @@ public class DemoApp extends JFrame {
 		  System.out.print("");
 	  }
 	  this.peer.sender.stopSending();
-	  while(this.peer.receiver.getMiner().isMining()) {System.out.print("");}
+	  while(this.peer.receiver.getMiner().isMining());
   }
 
   private void setupFrame(JFrame frame) {

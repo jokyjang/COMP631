@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.uncommons.maths.random.PoissonGenerator;
-
 import peerbase.HandlerInterface;
 import peerbase.LoggerUtil;
 import peerbase.Node;

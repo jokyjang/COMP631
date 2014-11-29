@@ -54,6 +54,7 @@ public class Sender extends Thread {
         continue;
       //long waitTime = new Random().nextInt((int) (upper - lower)) + lower;
       long waitTime = (long)(pg.nextWaitTime()*1000);
+      System.out.println("waiting time is: " + waitTime + "ms");
       try {
         Thread.sleep(waitTime);
       } catch (InterruptedException e) {
@@ -120,14 +121,19 @@ public class Sender extends Thread {
     for (String pid : peer.getPeerKeys()) {
       PeerInfo info = peer.getPeer(pid);
       if (r.nextDouble() > lossRates.get(i)) {
+    	  System.out.println("Message not loss");
     	try {
-    		long sleepTime = (long)(delays.get(i) * 1000 + Math.abs(r.nextGaussian()));
+    		//long sleepTime = (long)(delays.get(i) * 1000 + Math.abs(r.nextGaussian()));
+    		long sleepTime = (long)(delays.get(i) * 1000);
+    		System.out.println("Message delayed for " + sleepTime + "ms");
     		Thread.sleep(sleepTime);
     	} catch (InterruptedException e) {
     		e.printStackTrace();
     	}
         peer.connectAndSend(info, MessageType.RECVMSG,
             String.format("%s %s", peer.getId(), strMsg), false);
+      } else {
+    	  System.out.println("Message lost!");
       }
       ++i;
     }
