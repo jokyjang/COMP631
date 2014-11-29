@@ -84,7 +84,7 @@ public class DemoApp extends JFrame {
 
   private void waitingForAllPeers() {
     System.out.println("waiting for all the peers!");
-    while (this.peer.getNumberOfPeers() != this.peer.getMaxPeers()) {
+    while (this.peer.getNumberOfPeers() < this.peer.getMaxPeers() - 1) {
       System.out.print("");
     }
     System.out.println("all the peers come in");
