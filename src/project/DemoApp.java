@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -30,11 +29,6 @@ public class DemoApp extends JFrame {
   private JPanel lowerFilesPanel, lowerPeersPanel;
   private DefaultListModel messageModel, peersModel;
   private JList messageList, peersList;
-  private List<Double> delay;
-  private List<Double> lossrate;
-  private double sentFreq;
-  private int powSpeed;
-  private int peerNum;
 
   private JButton startButton, lowerBoundButton, messageSizeButton;
   private JButton removePeersButton, refreshPeersButton, upperBoundButton;
@@ -103,15 +97,21 @@ public class DemoApp extends JFrame {
         { {1.417976538, 2.45421, 0.3420596887, 0.7518, 1.00, 24},
             {0.4411860876, 1.432, 0.8316800206, 0.3722, 0.95, 26},
             {0.2745185094, 0.9837, 1.634275672, 0.1576, 0.9, 28}};
+    final double[][] parameters = { {0.01, 0.8, 0.99, 24}, {0.2, 2, 0.95, 26}, {0.5, 5, 0.9, 28}};
     int counter = 1;
     for (int i = 0; i < 1; ++i) {
       for (int j = 0; j < 1; ++j) {
         for (int k = 0; k < 1; ++k) {
           for (int l = 0; l < 1; ++l) {
             System.out.println("round " + counter);
+            /*
             pg =
                 new ParameterGenerator(prms[i][0], prms[i][1], prms[j][2], prms[j][3], prms[k][4],
                     (int) prms[l][5]);
+            */
+            pg =
+                new ParameterGenerator(parameters[i][0], parameters[j][1], parameters[k][2],
+                    (int) parameters[l][3]);
             PrintWriter writer = null;
             try {
               writer = new PrintWriter("/Users/Shared/" + peer.getId() + "_" + i + j + k);
@@ -129,10 +129,11 @@ public class DemoApp extends JFrame {
   }
 
   private void runOneLoop(ParameterGenerator pg) {
-    double sendInterval = Math.exp(pg.speedMu - pg.speedSigma * pg.speedSigma);
-    double avgDelay = Math.exp(pg.delayMu - pg.delaySigma * pg.delaySigma);
-    System.out.println("speed time: " + (long) (sendInterval * 1000) + "ms");
-    System.out.println("delay time: " + (long) (avgDelay * 1000) + "ms");
+    //double sendInterval = Math.exp(pg.speedMu - pg.speedSigma * pg.speedSigma);
+    //double avgDelay = Math.exp(pg.delayMu - pg.delaySigma * pg.delaySigma);
+    //System.out.println("speed time: " + (long) (sendInterval * 1000) + "ms");
+    //System.out.println("delay time: " + (long) (avgDelay * 1000) + "ms");
+    double sendInterval = pg.freq;
     final int SEND_COUNT = 1000;
     long timeToLive = (long) (sendInterval * SEND_COUNT * 1000);
     long startTime = System.currentTimeMillis();
