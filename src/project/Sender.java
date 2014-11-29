@@ -1,5 +1,6 @@
 package project;
 
+import java.util.List;
 import java.util.Random;
 
 import javax.xml.bind.DatatypeConverter;
@@ -16,11 +17,20 @@ public class Sender extends Thread {
   private long lower;
   private long upper;
   private double lossRate;
+  private List<Double> lossRates;
+  private List<Double> delays;
+  private ParameterGenerator pg;
 
   private MessageProcessNode peer;
 
   public Sender(MessageProcessNode peer) {
     this(peer, DEFAULT_MESSAGE_LENGTH, DEFAULT_LOWER_BOUND, DEFAULT_UPPER_BOUND, DEFAULT_LOSS_RATE);
+  }
+  
+  public void setPG(ParameterGenerator p) {
+	  pg = p;
+	  lossRates = pg.lossRatesGenerator(peer.getMaxPeers());
+	  delays = pg.delayGenerator(peer.getMaxPeers());
   }
 
   public Sender(MessageProcessNode peer, int messageLength, long lower, long upper, double lossRate) {
@@ -42,7 +52,8 @@ public class Sender extends Thread {
       System.out.print("");
       if (!this.sendFlag)
         continue;
-      long waitTime = new Random().nextInt((int) (upper - lower)) + lower;
+      //long waitTime = new Random().nextInt((int) (upper - lower)) + lower;
+      long waitTime = (long)(pg.nextWaitTime()*1000);
       try {
         Thread.sleep(waitTime);
       } catch (InterruptedException e) {
@@ -59,6 +70,10 @@ public class Sender extends Thread {
 
   public void stopSending() {
     this.sendFlag = false;
+  }
+  
+  public boolean isSending() {
+	  return this.sendFlag;
   }
 
   public int getMessageLength() {
@@ -101,12 +116,20 @@ public class Sender extends Thread {
   public void broadcast(byte[] message) {
     String strMsg = DatatypeConverter.printBase64Binary(message);
     Random r = new Random();
+    int i = 0;
     for (String pid : peer.getPeerKeys()) {
       PeerInfo info = peer.getPeer(pid);
-      if (r.nextDouble() > lossRate) {
+      if (r.nextDouble() > lossRates.get(i)) {
+    	try {
+    		long sleepTime = (long)(delays.get(i) * 1000 + Math.abs(r.nextGaussian()));
+    		Thread.sleep(sleepTime);
+    	} catch (InterruptedException e) {
+    		e.printStackTrace();
+    	}
         peer.connectAndSend(info, MessageType.RECVMSG,
             String.format("%s %s", peer.getId(), strMsg), false);
       }
+      ++i;
     }
     PeerInfo info = new PeerInfo(peer.getHost(), peer.getPort());
     peer.connectAndSend(info, MessageType.RECVMSG, String.format("%s %s", getId(), strMsg), false);

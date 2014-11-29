@@ -17,25 +17,25 @@ public class ParameterGenerator {
 	public double speedMu;
 	public double speedSigma;
 	public double lossRate;
-	public double constraint;
+	public int constraint;
+	LogNormalDistribution speed;
 	
-	private ParameterGenerator(double dm, double ds, double sm, double ss, double lr, double ct) {
+	public ParameterGenerator(double dm, double ds, double sm, double ss, double lr, int ct) {
 		this.delayMu = dm;
 		this.delaySigma  = ds;
 		this.speedMu = sm;
 		this.speedSigma = ss;
 		this.lossRate = lr;
 		this.constraint = ct;
+		speed = new LogNormalDistribution(sm, ss);
 	}
 	
-	public static ParameterGenerator createPG(double dm, double ds, double sm, double ss, double lr, double ct) {
-		if(pg == null)
-			pg = new ParameterGenerator(dm, ds, sm, ss, lr, ct);
-		return pg;
+	public double nextWaitTime() {
+		return speed.sample();
 	}
 
-	public static List<Double> logNormalGenerator(double scale, double shape, int size) {
-		LogNormalDistribution lnd = new LogNormalDistribution(scale, shape);
+	public List<Double> delayGenerator(int size) {
+		LogNormalDistribution lnd = new LogNormalDistribution(this.delayMu, this.delaySigma);
 		List<Double> list = new ArrayList<Double>(size);
 		double[] sample = lnd.sample(size);
 		for(double s : sample) {
@@ -44,13 +44,13 @@ public class ParameterGenerator {
 		return list;
 	}
 
-  public static List<Double> exponentialGenerator(int lambda, int size) {
+  public List<Double> lossRatesGenerator(int size) {
     ExponentialGenerator rand =
-        new ExponentialGenerator(lambda, new Random(System.currentTimeMillis()));
-    List<Double> result = new ArrayList<Double>(size);
+        new ExponentialGenerator(this.lossRate, new Random(System.currentTimeMillis()));
+    List<Double> peerLossRates = new ArrayList<Double>(size);
     for (int i = 0; i < size; i++) {
-      result.add(rand.nextValue());
+      peerLossRates.add(1-rand.nextValue());
     }
-    return result;
+    return peerLossRates;
   }
 }

@@ -5,7 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -43,11 +44,11 @@ public class DemoApp extends JFrame {
 
   private MessageProcessNode peer;
 
-  public DemoApp(String initialhost, int initialport, int maxpeers, PeerInfo mypd, String[] args) {
+  public DemoApp(String initialhost, int initialport, int maxpeers, PeerInfo mypd) {
     peer = new MessageProcessNode(maxpeers, mypd);
     peer.buildPeers(initialhost, initialport, 2);
 
-    composeRandomNumber(args);
+    //composeRandomNumber(args);
 
     startButton = new JButton("Start");
     startButton.addActionListener(new StartListener());
@@ -68,44 +69,70 @@ public class DemoApp extends JFrame {
 
     setupFrame(this);
 
+    /*
     (new Thread() {
       public void run() {
         peer.mainLoop();
       }
     }).start();
+    */
+    
+    (new Thread() {
+    	public void run() {
+    		waitingForAllPeers();
+    		mainLoop();
+    	}
+    }).start();
 
-    /*
-     * Swing is not threadsafe, so can't update GUI component from a thread other than the event
-     * thread
-     */
-    /*
-     * (new Thread() { public void run() { while (true) {
-     * 
-     * new RefreshListener().actionPerformed(null); try { Thread.sleep(1000); } catch
-     * (InterruptedException e) { } } }}).start();
-     */
-    new javax.swing.Timer(3000, new RefreshListener()).start();
-
-    peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
+    //new javax.swing.Timer(3000, new RefreshListener()).start();
+    //peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
   }
-
-  private void composeRandomNumber(String[] args) {
-    int[] parameters = new int[args.length];
-    for(int i = 0; i < args.length; ++i) {
-    	parameters[i] = Integer.parseInt(args[i]);
-    }
-    final double[][] prms = {
-    		{2.233054814,	2.615,	0.468293227,	0.7518,	0.99,	24},
-    		{1.351653996,	1.432,	0.4395628357,	0.3722,	0.95,	26},
-    		{0.6666356943,	0.9837,	0.7238077643,	0.1576,	0.9,	28}
-    };
-    ParameterGenerator.createPG(
-    		prms[parameters[0]][0],
-    		prms[parameters[0]][1],
-    		prms[parameters[1]][2],
-    		prms[parameters[1]][3],
-    		prms[parameters[2]][4],
-    		prms[parameters[3]][5]);
+  
+  private void waitingForAllPeers() {
+	  //while(this.peer.getNumberOfPeers() != this.peer.getMaxPeers()) {System.out.print("");}
+  }
+  private ParameterGenerator pg;
+  
+	private void mainLoop() {
+		final double[][] prms = {
+				{ 2.233054814, 2.615, 0.3420596887, 0.7518, 0.99, 24 },
+				{ 0.4411860876, 1.432, 0.8316800206, 0.3722, 0.95, 26 },
+				{ 0.2745185094, 0.9837, 1.634275672, 0.1576, 0.9, 28 } };
+		
+		for (int i = 0; i < 3; ++i) {
+			for (int j = 0; j < 3; ++j) {
+				for (int k = 0; k < 3; ++k) {
+					for (int l = 0; l < 3; ++l) {
+						pg = new ParameterGenerator(prms[i][0], prms[i][1],
+								prms[j][2], prms[j][3], prms[k][4], (int)prms[l][5]);
+						PrintWriter writer = null;
+						try {
+						      writer = new PrintWriter("/Users/Shared/" + peer.getId() + "_"+i+j+k);
+						    } catch (FileNotFoundException e) {
+						      e.printStackTrace();
+						    }
+						this.peer.receiver.setWriter(writer);
+						runOneLoop(pg);
+						writer.close();
+					}
+				}
+			}
+		}
+	}
+  
+  private void runOneLoop(ParameterGenerator pg) {
+	  double sendInterval = Math.exp(pg.speedMu-pg.speedSigma*pg.speedSigma);
+	  final int SEND_COUNT = 1000;
+	  long timeToLive = (long)(sendInterval * SEND_COUNT * 1000);
+	  long startTime = System.currentTimeMillis();
+	  this.peer.sender.setPG(pg);
+	  this.peer.receiver.setConstraint(pg.constraint);
+	  this.peer.sender.startSending();
+	  while(System.currentTimeMillis() < startTime + timeToLive) {
+		  System.out.print("");
+	  }
+	  this.peer.sender.stopSending();
+	  while(this.peer.receiver.getMiner().isMining()) {System.out.print("");}
   }
 
   private void setupFrame(JFrame frame) {
@@ -163,8 +190,7 @@ public class DemoApp extends JFrame {
     frame.add(upperPanel, BorderLayout.NORTH);
     frame.add(lowerPanel, BorderLayout.CENTER);
 
-    frame.setVisible(true);
-
+    frame.setVisible(false);
   }
 
 

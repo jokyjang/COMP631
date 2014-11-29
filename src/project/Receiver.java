@@ -14,7 +14,7 @@ import peerbase.PeerInfo;
 
 public class Receiver {
 
-  private class Miner extends Thread {
+  class Miner extends Thread {
     private boolean stop = true;
     private boolean finish = false;
     private final int DEFAULT_CONSTRAINT = 24;
@@ -117,14 +117,17 @@ public class Receiver {
     buffer = new MessageBlock();
     this.startProcessingSize = startSize;
     this.lossRate = lossRate;
-    try {
-      writer = new PrintWriter("/Users/Shared/" + peer.getId());
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
     blockChain = new Stack<MessageBlock>();
     miner = new Miner();
     miner.start();
+  }
+  
+  public Miner getMiner() {
+	  return miner;
+  }
+  
+  public void setWriter(PrintWriter pw) {
+	  this.writer = pw;
   }
 
   public MessageBlock getLastMessageBlock() {
@@ -199,6 +202,11 @@ public class Receiver {
       miner.stopMining();
     curr.setPow(pow);
     this.addMessageBlock(curr);
+    if(buffer.getMessages().isEmpty()) {
+    	init = true;
+    	curr = null;
+    	return;
+    }
     curr = buffer;
     buffer = new MessageBlock();
     processMessage();
