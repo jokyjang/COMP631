@@ -169,11 +169,15 @@ public class Receiver {
    * 
    * @param msg
    */
-  public void addMessage(String msg) {
+  public void addMessage(String[] msgs) {
+	int senderPort = Integer.parseInt(msgs[1]);
+	int sendCounter = Integer.parseInt(msgs[2]);
+	String msg = msgs[3];
+	writer.println(String.format("%d\t%d\t%d\t%s", blockChain.size(), senderPort, sendCounter, msg));
+	writer.flush();
     byte[] msgByte = DatatypeConverter.parseBase64Binary(msg);
-    if (new Random().nextDouble() > lossRate) {
-      buffer.addMessage(msgByte);
-    }
+    buffer.addMessage(msgByte);
+    
     if (init && buffer.getMessages().size() >= startProcessingSize) {
       init = false;
       curr = buffer;
@@ -199,6 +203,13 @@ public class Receiver {
   public void setPow(Long pow) {
     if (miner.isMining())
       miner.stopMining();
+    try {
+    	System.out.println("Wait for miner to really stop.");
+		Thread.sleep(100);
+	} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
     curr.setPow(pow);
     this.addMessageBlock(curr);
     if (buffer.getMessages().isEmpty() && !peer.sender.isSending()) {
@@ -227,12 +238,15 @@ public class Receiver {
   }
 
   private void addMessageBlock(MessageBlock mb) {
-    blockChain.push(mb);
+    
+    /*
     for (byte[] b : mb.getMessages()) {
       writer.println(blockChain.size() + "\t" + DatatypeConverter.printBase64Binary(b));
     }
+    */
     writer.println(blockChain.size() + "\t" + mb.getPow());
     writer.flush();
+    blockChain.push(mb);
     System.out.println("New Message Block: " + Receiver.generateHash(mb.serialize()));
   }
 

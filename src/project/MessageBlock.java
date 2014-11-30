@@ -25,7 +25,7 @@ public class MessageBlock {
     return messages;
   }
 
-  public void setPow(Long pow) {
+  public synchronized void setPow(Long pow) {
     this.pow = pow;
   }
 

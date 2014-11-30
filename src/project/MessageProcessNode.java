@@ -157,7 +157,7 @@ public class MessageProcessNode extends Node {
 
     public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
       String[] datas = msg.getMsgData().split(" ");
-      receiver.addMessage(datas[1]);
+      receiver.addMessage(datas);
     }
 
   }
