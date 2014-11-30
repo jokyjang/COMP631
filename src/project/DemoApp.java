@@ -140,7 +140,7 @@ public class DemoApp extends JFrame {
 
   private void runOneLoop(ParameterGenerator pg) {
     double sendInterval = pg.freq;
-    final int SEND_COUNT = 100;
+    final int SEND_COUNT = 1000;
     long timeToLive = (long) (sendInterval * SEND_COUNT);
     long startTime = System.currentTimeMillis();
     this.peer.sender.setPG(pg);
