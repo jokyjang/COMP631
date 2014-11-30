@@ -22,7 +22,8 @@ import peerbase.PeerInfo;
 import peerbase.util.SimplePingStabilizer;
 
 @SuppressWarnings("serial")
-public class DemoApp extends JFrame {
+//public class DemoApp extends JFrame {
+public class DemoApp {
   private static final int FRAME_WIDTH = 665, FRAME_HEIGHT = 265;
 
   private JPanel messagePanel, peersPanel;
@@ -44,6 +45,7 @@ public class DemoApp extends JFrame {
 
     // composeRandomNumber(args);
 
+    /*
     startButton = new JButton("Start");
     startButton.addActionListener(new StartListener());
     lowerBoundButton = new JButton("Lower Bound");
@@ -62,6 +64,7 @@ public class DemoApp extends JFrame {
     upperBoundTextField = new JTextField(15);
 
     setupFrame(this);
+    */
 
 
     (new Thread() {
@@ -74,27 +77,19 @@ public class DemoApp extends JFrame {
     (new Thread() {
       public void run() {
         waitingForAllPeers();
-
-        /*
-        try {
-    		Thread.sleep(3000);
-    	} catch (InterruptedException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	}
-    	*/
         mainLoop();
       }
     }).start();
 
-    new javax.swing.Timer(3000, new RefreshListener()).start();
-    peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
+    //new javax.swing.Timer(3000, new RefreshListener()).start();
+    //peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
   }
 
   private void waitingForAllPeers() {
     System.out.println("waiting for all the peers!");
     while (this.peer.getNumberOfPeers() < this.peer.getMaxPeers()) {
-      System.out.print("");
+      //System.out.println(this.peer.getNumberOfPeers() + "," +  this.peer.getMaxPeers());
+	System.out.print("");
     }
     System.out.println("all the peers come in");
   }
@@ -102,29 +97,20 @@ public class DemoApp extends JFrame {
   private ParameterGenerator pg;
 
   private void mainLoop() {
-    final double[][] prms =
-        { {1.417976538, 2.45421, 0.3420596887, 0.7518, 1.00, 24},
-            {0.4411860876, 1.432, 0.8316800206, 0.3722, 0.95, 26},
-            {0.2745185094, 0.9837, 1.634275672, 0.1576, 0.9, 28}};
     peer.sender.initPeerSender();
     final double[][] parameters =
-        { {10, 800, 0.0, 21}, {200, 2000, 0.05, 26}, {500, 5000, 0.1, 28}};
+        { {10, 800, 0.0, 21}, {200, 2000, 0.05, 23}, {500, 5000, 0.1, 25}};
     int counter = 1;
-    for (int i = 0; i < 1; ++i) {
-      for (int j = 0; j < 1; ++j) {
-        for (int k = 0; k < 1; ++k) {
-          for (int l = 0; l < 1; ++l) {
+    for (int i = 0; i < 4; ++i) {
+      for (int j = 0; j < 4; ++j) {
+        for (int k = 0; k < 4; ++k) {
+          for (int l = 0; l < 4; ++l) {
             System.out.println("round " + counter);
-            /*
-             * pg = new ParameterGenerator(prms[i][0], prms[i][1], prms[j][2], prms[j][3],
-             * prms[k][4], (int) prms[l][5]);
-             */
-            pg =
-                new ParameterGenerator(parameters[i][0], parameters[j][1], parameters[k][2],
+            pg = new ParameterGenerator(parameters[i][0], parameters[j][1], parameters[k][2],
                     (int) parameters[l][3]);
             PrintWriter writer = null;
             try {
-              writer = new PrintWriter("/Users/Shared/" + peer.getId() + "_" + i + j + k);
+              writer = new PrintWriter("./data/" + peer.getId() + "_" + i + j + k);
             } catch (FileNotFoundException e) {
               e.printStackTrace();
             }
@@ -140,7 +126,7 @@ public class DemoApp extends JFrame {
 
   private void runOneLoop(ParameterGenerator pg) {
     double sendInterval = pg.freq;
-    final int SEND_COUNT = 100;
+    final int SEND_COUNT = 1000;
     long timeToLive = (long) (sendInterval * SEND_COUNT);
     long startTime = System.currentTimeMillis();
     this.peer.sender.setPG(pg);
