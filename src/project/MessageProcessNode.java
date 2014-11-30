@@ -190,6 +190,7 @@ public class MessageProcessNode extends Node {
     }
 
     public void handleMessage(PeerConnection peerconn, PeerMessage msg) {
+      System.out.println("get pow: " + msg.getMsgData());
       receiver.setPow(Long.parseLong(msg.getMsgData()));
     }
 

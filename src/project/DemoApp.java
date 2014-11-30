@@ -108,7 +108,7 @@ public class DemoApp extends JFrame {
             {0.2745185094, 0.9837, 1.634275672, 0.1576, 0.9, 28}};
     peer.sender.initPeerSender();
     final double[][] parameters =
-        { {10, 800, 0.0, 20}, {200, 2000, 0.05, 26}, {500, 5000, 0.1, 28}};
+        { {10, 800, 0.0, 21}, {200, 2000, 0.05, 26}, {500, 5000, 0.1, 28}};
     int counter = 1;
     for (int i = 0; i < 1; ++i) {
       for (int j = 0; j < 1; ++j) {
@@ -140,7 +140,7 @@ public class DemoApp extends JFrame {
 
   private void runOneLoop(ParameterGenerator pg) {
     double sendInterval = pg.freq;
-    final int SEND_COUNT = 1000;
+    final int SEND_COUNT = 100;
     long timeToLive = (long) (sendInterval * SEND_COUNT);
     long startTime = System.currentTimeMillis();
     this.peer.sender.setPG(pg);
@@ -210,7 +210,7 @@ public class DemoApp extends JFrame {
     frame.add(upperPanel, BorderLayout.NORTH);
     frame.add(lowerPanel, BorderLayout.CENTER);
 
-    frame.setVisible(true);
+    //frame.setVisible(true);
   }
 
 

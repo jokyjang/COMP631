@@ -18,7 +18,7 @@ public class Receiver {
     private boolean finish = false;
     private final int DEFAULT_CONSTRAINT = 24;
     private int cons = DEFAULT_CONSTRAINT;
-
+    
     /**
      * This method will check if the first few bits of `hash' are 0. As for the number of bits, it
      * depends on how difficult the mining function is.
@@ -55,7 +55,7 @@ public class Receiver {
       if (!isMining())
         return null;
       stopMining();
-      System.out.println("I've mined the hash: " + hash);
+      System.out.println("I've mined the hash: " + hash + " the mine pow is: " + curr.getPow());
       return curr.getPow();
     }
 
@@ -106,6 +106,7 @@ public class Receiver {
   private Miner miner;
   private PrintWriter writer;
   private double lossRate;
+  private int blockCount = 1;
 
   public Receiver(MessageProcessNode peer) {
     this(peer, DEFAULT_START_PROCESSING_SIZE, DEFAULT_LOSS_RATE);
@@ -173,12 +174,13 @@ public class Receiver {
 	int senderPort = Integer.parseInt(msgs[1]);
 	int sendCounter = Integer.parseInt(msgs[2]);
 	String msg = msgs[3];
-	writer.println(String.format("%d\t%d\t%d\t%s", blockChain.size(), senderPort, sendCounter, msg));
+	writer.println(String.format("%d\t%d\t%d\t%s", blockCount, senderPort, sendCounter, msg));
 	writer.flush();
     byte[] msgByte = DatatypeConverter.parseBase64Binary(msg);
     buffer.addMessage(msgByte);
     
     if (init && buffer.getMessages().size() >= startProcessingSize) {
+      ++blockCount;
       init = false;
       curr = buffer;
       buffer = new MessageBlock();
@@ -201,13 +203,14 @@ public class Receiver {
    * @param pow
    */
   public void setPow(Long pow) {
+    writer.println(blockCount + "\t" + pow);
+    writer.flush();
     if (miner.isMining())
       miner.stopMining();
     try {
     	System.out.println("Wait for miner to really stop.");
 		Thread.sleep(100);
 	} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
     curr.setPow(pow);
@@ -218,6 +221,7 @@ public class Receiver {
     }
     curr = buffer;
     buffer = new MessageBlock();
+    ++blockCount;
     processMessage();
   }
 
@@ -244,8 +248,6 @@ public class Receiver {
       writer.println(blockChain.size() + "\t" + DatatypeConverter.printBase64Binary(b));
     }
     */
-    writer.println(blockChain.size() + "\t" + mb.getPow());
-    writer.flush();
     blockChain.push(mb);
     System.out.println("New Message Block: " + Receiver.generateHash(mb.serialize()));
   }
