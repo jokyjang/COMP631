@@ -44,7 +44,7 @@ public class Receiver {
     private Long mine() {
       System.out.println("Miner starts mining!");
       // stop = false;
-      Random random = new Random();
+      Random random = new Random(System.currentTimeMillis());
       String hash = null;
       do {
         curr.setPow(random.nextLong());
@@ -201,9 +201,8 @@ public class Receiver {
       miner.stopMining();
     curr.setPow(pow);
     this.addMessageBlock(curr);
-    if (buffer.getMessages().isEmpty()) {
+    if (buffer.getMessages().isEmpty() && !peer.sender.isSending()) {
       init = true;
-      curr = null;
       return;
     }
     curr = buffer;
