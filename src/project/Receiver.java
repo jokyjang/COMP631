@@ -270,4 +270,8 @@ public class Receiver {
   public void setConstraint(int constraint) {
     miner.cons = constraint;
   }
+  
+  public void resetBlockCount() {
+    blockCount = 1;
+  }
 }

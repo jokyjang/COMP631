@@ -19,9 +19,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 import peerbase.PeerInfo;
-import peerbase.util.SimplePingStabilizer;
 
-@SuppressWarnings("serial")
 // public class DemoApp extends JFrame {
 public class DemoApp {
   private static final int FRAME_WIDTH = 665, FRAME_HEIGHT = 265;
@@ -125,6 +123,7 @@ public class DemoApp {
     final int SEND_COUNT = 1000;
     long timeToLive = (long) (sendInterval * SEND_COUNT);
     long startTime = System.currentTimeMillis();
+    this.peer.receiver.resetBlockCount();
     this.peer.sender.setPG(pg);
     this.peer.receiver.setConstraint(pg.constraint);
     this.peer.sender.startSending();
