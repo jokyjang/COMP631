@@ -96,17 +96,17 @@ public class DemoApp {
     final double[][] parameters =
         { {10, 800, 0.0, 21}, {200, 2000, 0.05, 23}, {500, 5000, 0.1, 25}};
     int counter = 1;
-    for (int i = 0; i < 4; ++i) {
-      for (int j = 0; j < 4; ++j) {
-        for (int k = 0; k < 4; ++k) {
-          for (int l = 0; l < 4; ++l) {
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j) {
+        for (int k = 0; k < 3; ++k) {
+          for (int l = 0; l < 3; ++l) {
             System.out.println("round " + counter);
             pg =
                 new ParameterGenerator(parameters[i][0], parameters[j][1], parameters[k][2],
                     (int) parameters[l][3]);
             PrintWriter writer = null;
             try {
-              writer = new PrintWriter("./data/" + peer.getId() + "_" + i + j + k);
+              writer = new PrintWriter("./data/" + peer.getId() + "_" + i + j + k + l);
             } catch (FileNotFoundException e) {
               e.printStackTrace();
             }
