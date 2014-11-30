@@ -120,7 +120,7 @@ public class DemoApp {
 
   private void runOneLoop(ParameterGenerator pg) {
     double sendInterval = pg.freq;
-    final int SEND_COUNT = 1000;
+    final int SEND_COUNT = 1000 / 5;
     long timeToLive = (long) (sendInterval * SEND_COUNT);
     long startTime = System.currentTimeMillis();
     this.peer.receiver.reset();

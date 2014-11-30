@@ -214,7 +214,6 @@ public class Receiver {
     curr.setPow(pow);
     this.addMessageBlock(curr);
     if (buffer.getMessages().isEmpty() && !peer.sender.isSending()) {
-      init = true;
       return;
     }
     curr = buffer;
@@ -262,6 +261,7 @@ public class Receiver {
   }
 
   public void reset() {
+    System.out.println("Parameter has been reseted!");
     blockCount = 1;
     init = true;
   }
