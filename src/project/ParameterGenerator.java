@@ -44,7 +44,8 @@ public class ParameterGenerator {
 
   public double nextWaitTime() {
     double s = speed.sample();
-    while (s < 0) s = speed.sample();
+    while (s < 0)
+      s = speed.sample();
     return s;
   }
 

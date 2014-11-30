@@ -75,7 +75,7 @@ public class Sender extends Thread {
 
   public void run() {
     while (true) {
-      System.out.print("");	// make compiler happy
+      System.out.print(""); // make compiler happy
       if (!this.sendFlag)
         continue;
       // long waitTime = new Random().nextInt((int) (upper - lower)) + lower;
@@ -88,7 +88,7 @@ public class Sender extends Thread {
       }
       byte[] message = this.generateRandomMessage();
       broadcast(message);
-      //outputAllStatus();
+      // outputAllStatus();
     }
   }
 
@@ -189,8 +189,9 @@ public class Sender extends Thread {
    * @param message
    */
   public void broadcast(byte[] message) {
-    String strMsg = peer.getPort() + " " + counter + " " + DatatypeConverter.printBase64Binary(message);
-    //System.out.println(strMsg);
+    String strMsg =
+        peer.getPort() + " " + counter + " " + DatatypeConverter.printBase64Binary(message);
+    // System.out.println(strMsg);
     Random r = new Random(System.currentTimeMillis());
     for (int i = 0; i < peer.getMaxPeers(); ++i) {
       if (r.nextDouble() >= lossRates.get(i)) {

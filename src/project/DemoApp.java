@@ -22,7 +22,7 @@ import peerbase.PeerInfo;
 import peerbase.util.SimplePingStabilizer;
 
 @SuppressWarnings("serial")
-//public class DemoApp extends JFrame {
+// public class DemoApp extends JFrame {
 public class DemoApp {
   private static final int FRAME_WIDTH = 665, FRAME_HEIGHT = 265;
 
@@ -46,25 +46,20 @@ public class DemoApp {
     // composeRandomNumber(args);
 
     /*
-    startButton = new JButton("Start");
-    startButton.addActionListener(new StartListener());
-    lowerBoundButton = new JButton("Lower Bound");
-    lowerBoundButton.addActionListener(new LowerBoundListener());
-    messageSizeButton = new JButton("Message Size");
-    messageSizeButton.addActionListener(new MessageSizeListener());
-    removePeersButton = new JButton("Remove");
-    removePeersButton.addActionListener(new RemoveListener());
-    refreshPeersButton = new JButton("Refresh");
-    refreshPeersButton.addActionListener(new RefreshListener());
-    upperBoundButton = new JButton("Upper Bound");
-    upperBoundButton.addActionListener(new UpperBoundListener());
-
-    lowerBoundTextField = new JTextField(15);
-    messageSizeTextField = new JTextField(15);
-    upperBoundTextField = new JTextField(15);
-
-    setupFrame(this);
-    */
+     * startButton = new JButton("Start"); startButton.addActionListener(new StartListener());
+     * lowerBoundButton = new JButton("Lower Bound"); lowerBoundButton.addActionListener(new
+     * LowerBoundListener()); messageSizeButton = new JButton("Message Size");
+     * messageSizeButton.addActionListener(new MessageSizeListener()); removePeersButton = new
+     * JButton("Remove"); removePeersButton.addActionListener(new RemoveListener());
+     * refreshPeersButton = new JButton("Refresh"); refreshPeersButton.addActionListener(new
+     * RefreshListener()); upperBoundButton = new JButton("Upper Bound");
+     * upperBoundButton.addActionListener(new UpperBoundListener());
+     * 
+     * lowerBoundTextField = new JTextField(15); messageSizeTextField = new JTextField(15);
+     * upperBoundTextField = new JTextField(15);
+     * 
+     * setupFrame(this);
+     */
 
 
     (new Thread() {
@@ -81,15 +76,15 @@ public class DemoApp {
       }
     }).start();
 
-    //new javax.swing.Timer(3000, new RefreshListener()).start();
-    //peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
+    // new javax.swing.Timer(3000, new RefreshListener()).start();
+    // peer.startStabilizer(new SimplePingStabilizer(peer), 3000);
   }
 
   private void waitingForAllPeers() {
     System.out.println("waiting for all the peers!");
     while (this.peer.getNumberOfPeers() < this.peer.getMaxPeers()) {
-      //System.out.println(this.peer.getNumberOfPeers() + "," +  this.peer.getMaxPeers());
-	System.out.print("");
+      // System.out.println(this.peer.getNumberOfPeers() + "," + this.peer.getMaxPeers());
+      System.out.print("");
     }
     System.out.println("all the peers come in");
   }
@@ -106,7 +101,8 @@ public class DemoApp {
         for (int k = 0; k < 4; ++k) {
           for (int l = 0; l < 4; ++l) {
             System.out.println("round " + counter);
-            pg = new ParameterGenerator(parameters[i][0], parameters[j][1], parameters[k][2],
+            pg =
+                new ParameterGenerator(parameters[i][0], parameters[j][1], parameters[k][2],
                     (int) parameters[l][3]);
             PrintWriter writer = null;
             try {
@@ -196,7 +192,7 @@ public class DemoApp {
     frame.add(upperPanel, BorderLayout.NORTH);
     frame.add(lowerPanel, BorderLayout.CENTER);
 
-    //frame.setVisible(true);
+    // frame.setVisible(true);
   }
 
 
