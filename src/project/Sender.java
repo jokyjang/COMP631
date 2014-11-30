@@ -13,12 +13,10 @@ public class Sender extends Thread {
   public static final int DEFAULT_MESSAGE_LENGTH = 80;
   public static final long DEFAULT_LOWER_BOUND = 1000;
   public static final long DEFAULT_UPPER_BOUND = 2000;
-  public static final double DEFAULT_LOSS_RATE = 0;
   private boolean sendFlag = false;
   private int messageLength;
   private long lower;
   private long upper;
-  private double lossRate;
   private List<Double> lossRates;
   private List<Double> delays;
   private ParameterGenerator pg;
@@ -32,7 +30,7 @@ public class Sender extends Thread {
   private PeerSender[] peerSender;
 
   public Sender(MessageProcessNode peer) {
-    this(peer, DEFAULT_MESSAGE_LENGTH, DEFAULT_LOWER_BOUND, DEFAULT_UPPER_BOUND, DEFAULT_LOSS_RATE);
+    this(peer, DEFAULT_MESSAGE_LENGTH, DEFAULT_LOWER_BOUND, DEFAULT_UPPER_BOUND);
   }
 
   public void setPG(ParameterGenerator p) {
@@ -41,12 +39,11 @@ public class Sender extends Thread {
     delays = pg.delayGenerator2(peer.getMaxPeers());
   }
 
-  public Sender(MessageProcessNode peer, int messageLength, long lower, long upper, double lossRate) {
+  public Sender(MessageProcessNode peer, int messageLength, long lower, long upper) {
     this.peer = peer;
     this.messageLength = messageLength;
     this.lower = lower;
     this.upper = upper;
-    this.lossRate = lossRate;
     this.counter = 0;
 
     waitTime = 0;
@@ -134,14 +131,6 @@ public class Sender extends Thread {
 
   public void setUpper(long upper) {
     this.upper = upper;
-  }
-
-  public double getLossRate() {
-    return lossRate;
-  }
-
-  public void setLossRate(double lossRate) {
-    this.lossRate = lossRate;
   }
 
   private class PeerSender extends Thread {

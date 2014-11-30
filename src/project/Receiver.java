@@ -105,18 +105,16 @@ public class Receiver {
   private int startProcessingSize;
   private Miner miner;
   private PrintWriter writer;
-  private double lossRate;
   private int blockCount = 1;
 
   public Receiver(MessageProcessNode peer) {
-    this(peer, DEFAULT_START_PROCESSING_SIZE, DEFAULT_LOSS_RATE);
+    this(peer, DEFAULT_START_PROCESSING_SIZE);
   }
 
-  public Receiver(MessageProcessNode peer, int startSize, double lossRate) {
+  public Receiver(MessageProcessNode peer, int startSize) {
     this.peer = peer;
     buffer = new MessageBlock();
     this.startProcessingSize = startSize;
-    this.lossRate = lossRate;
     blockChain = new Stack<MessageBlock>();
     miner = new Miner();
     miner.start();
@@ -259,19 +257,12 @@ public class Receiver {
     return buffer;
   }
 
-  public double getLossRate() {
-    return lossRate;
-  }
-
-  public void setLossRate(double lossRate) {
-    this.lossRate = lossRate;
-  }
-
   public void setConstraint(int constraint) {
     miner.cons = constraint;
   }
-  
-  public void resetBlockCount() {
+
+  public void reset() {
     blockCount = 1;
+    init = true;
   }
 }

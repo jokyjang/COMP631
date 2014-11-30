@@ -92,7 +92,7 @@ public class DemoApp {
   private void mainLoop() {
     peer.sender.initPeerSender();
     final double[][] parameters =
-        { {10, 800, 0.0, 21}, {200, 2000, 0.05, 23}, {500, 5000, 0.1, 25}};
+        { {10, 800, 0.0, 21}, {200, 2000, 0.05, 22}, {500, 5000, 0.1, 23}};
     int counter = 1;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j) {
@@ -123,7 +123,7 @@ public class DemoApp {
     final int SEND_COUNT = 1000;
     long timeToLive = (long) (sendInterval * SEND_COUNT);
     long startTime = System.currentTimeMillis();
-    this.peer.receiver.resetBlockCount();
+    this.peer.receiver.reset();
     this.peer.sender.setPG(pg);
     this.peer.receiver.setConstraint(pg.constraint);
     this.peer.sender.startSending();
