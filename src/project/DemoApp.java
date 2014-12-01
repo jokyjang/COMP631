@@ -43,10 +43,10 @@ public class DemoApp {
     peer.sender.initPeerSender();
     final double[][] parameters =
         { {10, 800, 0.0, 21}, {200, 2000, 0.05, 22}, {500, 5000, 0.1, 23}};
-    int counter = 1;
+    int counter = 14;
     for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j) {
-        for (int k = 0; k < 3; ++k) {
+      for (int j = 1; j < 3; ++j) {
+        for (int k = 1; k < 3; ++k) {
           for (int l = 0; l < 3; ++l) {
             System.out.println("round " + counter);
             pg =
