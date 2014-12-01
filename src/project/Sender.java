@@ -89,14 +89,6 @@ public class Sender extends Thread {
     }
   }
 
-  private void outputAllStatus() {
-    String str = String.format("M%d: %d, ", counter, waitTime);
-    for (int i = 0; i < peer.getMaxPeers(); ++i) {
-      str += String.format("[%d,%s], ", delayTime[i], loss[i]);
-    }
-    System.out.println(str);
-  }
-
   public void startSending() {
     this.sendFlag = true;
   }
